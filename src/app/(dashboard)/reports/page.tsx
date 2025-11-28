@@ -158,6 +158,18 @@ export default function ReportsPage() {
                     setEndDate(lastDay.toISOString().split("T")[0]);
                   }}
                 >
+                  Bu Aya Dön
+                </Button>
+              )}
+              {(startDate || endDate) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                >
                   Sıfırla
                 </Button>
               )}

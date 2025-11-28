@@ -109,11 +109,20 @@ export async function DELETE(
     });
 
     // 6. Finally delete the business
-    await prisma.business.delete({
+    const deletedBusiness = await prisma.business.delete({
       where: { id: businessId },
     });
 
-    return NextResponse.json({ success: true, message: "İşletme silindi" });
+    // Verify deletion
+    const verifyDeletion = await prisma.business.findUnique({
+      where: { id: businessId },
+    });
+
+    if (verifyDeletion) {
+      throw new Error("İşletme silinemedi. Lütfen tekrar deneyin.");
+    }
+
+    return NextResponse.json({ success: true, message: "İşletme başarıyla silindi", deletedId: businessId });
   } catch (error: any) {
     console.error("Delete business error:", error);
     if (error.code === "P2025") {

@@ -267,25 +267,29 @@ export default function DashboardPage() {
               </div>
             ) : stats?.salesChartData?.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex items-end justify-between h-64 gap-2">
+                <div className="flex items-end justify-between h-64 gap-2 pb-4">
                   {stats.salesChartData.map((day: any, index: number) => {
-                    const maxSales = Math.max(...stats.salesChartData.map((d: any) => d.sales));
+                    const maxSales = Math.max(...stats.salesChartData.map((d: any) => d.sales || 0), 1);
                     const height = maxSales > 0 ? (day.sales / maxSales) * 100 : 0;
+                    const dateStr = typeof day.date === 'string' ? day.date : day.date.toISOString().split('T')[0];
                     return (
-                      <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                        <div className="relative w-full h-full flex items-end">
+                      <div key={index} className="flex-1 flex flex-col items-center gap-2 min-w-0">
+                        <div className="relative w-full h-full flex items-end justify-center">
                           <div
-                            className="w-full rounded-t-lg bg-gradient-to-t from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 cursor-pointer group"
-                            style={{ height: `${height}%`, minHeight: height > 0 ? "4px" : "0" }}
-                            title={`${format(new Date(day.date), "dd MMM", { locale: tr })}: ${formatCurrency(day.sales)}`}
+                            className="w-full max-w-[60px] rounded-t-lg bg-gradient-to-t from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 cursor-pointer group relative"
+                            style={{ 
+                              height: `${Math.max(height, 2)}%`,
+                              minHeight: height > 0 ? "8px" : "0"
+                            }}
+                            title={`${format(new Date(dateStr), "dd MMM", { locale: tr })}: ${formatCurrency(day.sales || 0)}`}
                           >
-                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                              {formatCurrency(day.sales)}
+                            <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
+                              {formatCurrency(day.sales || 0)}
                             </div>
                           </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(day.date), "dd MMM", { locale: tr })}
+                        <p className="text-xs text-muted-foreground text-center truncate w-full">
+                          {format(new Date(dateStr), "dd MMM", { locale: tr })}
                         </p>
                       </div>
                     );
