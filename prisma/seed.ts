@@ -52,7 +52,7 @@ export async function seedBusinessData(businessId: string) {
     }),
   ]);
 
-  // Create demo products
+  // Create demo products with various stock levels for testing
   const products = await Promise.all([
     prisma.product.create({
       data: {
@@ -63,7 +63,7 @@ export async function seedBusinessData(businessId: string) {
         category: "Genel",
         purchasePrice: 100,
         sellPrice: 150,
-        stockQuantity: 50,
+        stockQuantity: 50, // Normal stock
       },
     }),
     prisma.product.create({
@@ -75,7 +75,7 @@ export async function seedBusinessData(businessId: string) {
         category: "Genel",
         purchasePrice: 200,
         sellPrice: 300,
-        stockQuantity: 30,
+        stockQuantity: 30, // Normal stock
       },
     }),
     prisma.product.create({
@@ -87,7 +87,55 @@ export async function seedBusinessData(businessId: string) {
         category: "Aksesuar",
         purchasePrice: 50,
         sellPrice: 80,
-        stockQuantity: 100,
+        stockQuantity: 100, // High stock
+      },
+    }),
+    prisma.product.create({
+      data: {
+        businessId,
+        name: "Düşük Stoklu Ürün",
+        sku: "LOW-001",
+        description: "Stok kontrolü testi için düşük stoklu ürün",
+        category: "Test",
+        purchasePrice: 75,
+        sellPrice: 120,
+        stockQuantity: 2, // Low stock - for testing stock validation
+      },
+    }),
+    prisma.product.create({
+      data: {
+        businessId,
+        name: "Kritik Stok Ürünü",
+        sku: "CRIT-001",
+        description: "Kritik seviyede stok (1 adet)",
+        category: "Test",
+        purchasePrice: 150,
+        sellPrice: 250,
+        stockQuantity: 1, // Critical stock - for testing
+      },
+    }),
+    prisma.product.create({
+      data: {
+        businessId,
+        name: "Stokta Yok",
+        sku: "OUT-001",
+        description: "Stokta olmayan ürün testi",
+        category: "Test",
+        purchasePrice: 200,
+        sellPrice: 350,
+        stockQuantity: 0, // Out of stock - for testing
+      },
+    }),
+    prisma.product.create({
+      data: {
+        businessId,
+        name: "Az Stoklu Ürün",
+        sku: "LOW-002",
+        description: "5 adet stok - düşük stok uyarısı için",
+        category: "Test",
+        purchasePrice: 80,
+        sellPrice: 130,
+        stockQuantity: 5, // Low stock warning level
       },
     }),
   ]);

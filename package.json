@@ -12,7 +12,8 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "db:migrate": "prisma migrate deploy"
+    "db:migrate": "prisma migrate deploy",
+    "db:update-stock": "tsx scripts/update-stock-for-testing.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
