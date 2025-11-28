@@ -25,7 +25,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ results: [] });
     }
 
-    const results = [];
+    interface SearchResult {
+      type: "product" | "customer" | "order";
+      id: string;
+      title: string;
+      subtitle?: string;
+      href: string;
+    }
+
+    const results: SearchResult[] = [];
 
     // Search products
     const products = await prisma.product.findMany({
