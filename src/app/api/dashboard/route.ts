@@ -82,16 +82,6 @@ export async function GET() {
         _count: true,
       }),
 
-      // Customer count
-      prisma.customer.count({
-        where: { businessId, isActive: true },
-      }),
-
-      // Product count
-      prisma.product.count({
-        where: { businessId, isActive: true },
-      }),
-
       // Last month orders for comparison
       prisma.order.aggregate({
         where: {
@@ -106,6 +96,16 @@ export async function GET() {
           totalAmount: true,
         },
         _count: true,
+      }),
+
+      // Customer count
+      prisma.customer.count({
+        where: { businessId, isActive: true },
+      }),
+
+      // Product count
+      prisma.product.count({
+        where: { businessId, isActive: true },
       }),
 
       // Recent orders
