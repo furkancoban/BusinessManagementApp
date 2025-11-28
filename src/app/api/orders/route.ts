@@ -106,6 +106,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No business selected" }, { status: 400 });
     }
 
+    const businessId = session.user.businessId;
+
     const body = await request.json();
     const { customerId, paymentType, notes, items } = body;
 
@@ -120,7 +122,7 @@ export async function POST(request: NextRequest) {
     const year = new Date().getFullYear();
     const lastOrder = await prisma.order.findFirst({
       where: {
-        businessId: session.user.businessId,
+        businessId: businessId,
         orderNumber: {
           startsWith: `SIP-${year}-`,
         },
@@ -140,7 +142,7 @@ export async function POST(request: NextRequest) {
     const products = await prisma.product.findMany({
       where: { 
         id: { in: productIds },
-        businessId: session.user.businessId,
+        businessId: businessId,
       },
     });
     const productMap = new Map(products.map((p) => [p.id, p]));
@@ -180,7 +182,7 @@ export async function POST(request: NextRequest) {
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
-          businessId: session.user.businessId,
+          businessId: businessId,
           customerId,
           totalAmount,
           paymentType: paymentType || "CASH",
