@@ -148,7 +148,7 @@ MIT
 
 ---
 
-**Geliştirici:** Full-Stack Developer  
+**Geliştirici:** Furkan Coban
 **Versiyon:** 1.0.0  
-**Son Güncelleme:** Kasım 2024
+**Son Güncelleme:** November 2025
 
