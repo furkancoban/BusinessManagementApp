@@ -6,7 +6,10 @@ import { DayPicker, DayPickerSingleProps } from "react-day-picker";
 import { tr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
-export type CalendarProps = DayPickerSingleProps;
+export type CalendarProps = DayPickerSingleProps & {
+  className?: string;
+  classNames?: Record<string, string>;
+};
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
   return (
