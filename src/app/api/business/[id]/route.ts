@@ -70,7 +70,45 @@ export async function DELETE(
       );
     }
 
-    // Delete the business (cascade will handle related data)
+    // Delete related data in correct order to avoid foreign key constraints
+    // 1. Delete OrderItems first (they reference both Order and Product)
+    await prisma.orderItem.deleteMany({
+      where: {
+        order: {
+          businessId: businessId,
+        },
+      },
+    });
+
+    // 2. Delete Orders
+    await prisma.order.deleteMany({
+      where: {
+        businessId: businessId,
+      },
+    });
+
+    // 3. Delete Products (OrderItems are already deleted, so this is safe)
+    await prisma.product.deleteMany({
+      where: {
+        businessId: businessId,
+      },
+    });
+
+    // 4. Delete Customers
+    await prisma.customer.deleteMany({
+      where: {
+        businessId: businessId,
+      },
+    });
+
+    // 5. Delete UserBusiness relationships
+    await prisma.userBusiness.deleteMany({
+      where: {
+        businessId: businessId,
+      },
+    });
+
+    // 6. Finally delete the business
     await prisma.business.delete({
       where: { id: businessId },
     });
