@@ -251,55 +251,153 @@ export default function DashboardPage() {
 
       {/* Charts and Detailed Info */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Sales Chart - Simple Bar Chart */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Son 7 Günlük Satış Trendi
-            </CardTitle>
-            <CardDescription>Günlük satış performansı</CardDescription>
+        {/* Sales Chart - Enhanced Bar Chart */}
+        <Card className="lg:col-span-2 border-2 border-blue-100 bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                    <BarChart3 className="h-5 w-5" />
+                  </div>
+                  Son 7 Günlük Satış Trendi
+                </CardTitle>
+                <CardDescription className="mt-1">Günlük satış performansı ve trend analizi</CardDescription>
+              </div>
+              {stats?.salesChartData && (
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Toplam</p>
+                  <p className="text-lg font-bold text-blue-700">
+                    {formatCurrency(
+                      stats.salesChartData.reduce((sum: number, day: any) => sum + (day.sales || 0), 0)
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="h-64 flex items-center justify-center">
-                <Skeleton className="h-full w-full" />
+              <div className="h-80 flex items-center justify-center">
+                <Skeleton className="h-full w-full rounded-lg" />
               </div>
             ) : stats?.salesChartData?.length > 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-end justify-between h-64 gap-2 pb-4">
-                  {stats.salesChartData.map((day: any, index: number) => {
-                    const maxSales = Math.max(...stats.salesChartData.map((d: any) => d.sales || 0), 1);
-                    const height = maxSales > 0 ? (day.sales / maxSales) * 100 : 0;
-                    const dateStr = typeof day.date === 'string' ? day.date : day.date.toISOString().split('T')[0];
-                    return (
-                      <div key={index} className="flex-1 flex flex-col items-center gap-2 min-w-0">
-                        <div className="relative w-full h-full flex items-end justify-center">
-                          <div
-                            className="w-full max-w-[60px] rounded-t-lg bg-gradient-to-t from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 cursor-pointer group relative"
-                            style={{ 
-                              height: `${Math.max(height, 2)}%`,
-                              minHeight: height > 0 ? "8px" : "0"
-                            }}
-                            title={`${format(new Date(dateStr), "dd MMM", { locale: tr })}: ${formatCurrency(day.sales || 0)}`}
-                          >
-                            <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
-                              {formatCurrency(day.sales || 0)}
+              <div className="space-y-6">
+                {/* Chart with grid lines */}
+                <div className="relative h-80 pb-8">
+                  {/* Grid lines */}
+                  <div className="absolute inset-0 flex flex-col justify-between">
+                    {[0, 25, 50, 75, 100].map((percent) => (
+                      <div
+                        key={percent}
+                        className="border-t border-dashed border-gray-200"
+                        style={{ marginTop: percent === 0 ? 0 : `${percent}%` }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Bars */}
+                  <div className="relative h-full flex items-end justify-between gap-3 px-2">
+                    {stats.salesChartData.map((day: any, index: number) => {
+                      const maxSales = Math.max(...stats.salesChartData.map((d: any) => d.sales || 0), 1);
+                      const height = maxSales > 0 ? (day.sales / maxSales) * 100 : 0;
+                      const dateStr = typeof day.date === 'string' ? day.date : day.date.toISOString().split('T')[0];
+                      const isToday = format(new Date(dateStr), "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+                      const isHighest = day.sales === maxSales;
+                      
+                      return (
+                        <div key={index} className="flex-1 flex flex-col items-center gap-3 h-full min-w-0 group">
+                          {/* Value label on hover */}
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-20 pointer-events-none">
+                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+                            {formatCurrency(day.sales || 0)}
+                          </div>
+
+                          {/* Bar container */}
+                          <div className="relative w-full h-full flex items-end justify-center">
+                            <div
+                              className={`w-full rounded-t-xl transition-all duration-500 cursor-pointer relative overflow-hidden ${
+                                isHighest
+                                  ? "bg-gradient-to-t from-emerald-500 via-emerald-400 to-emerald-300 shadow-lg shadow-emerald-200 ring-2 ring-emerald-300"
+                                  : isToday
+                                  ? "bg-gradient-to-t from-blue-500 via-blue-400 to-blue-300 shadow-md shadow-blue-200"
+                                  : "bg-gradient-to-t from-indigo-500 via-indigo-400 to-indigo-300 shadow-sm shadow-indigo-100"
+                              } group-hover:scale-105 group-hover:shadow-xl`}
+                              style={{ 
+                                height: `${Math.max(height, 3)}%`,
+                                minHeight: height > 0 ? "12px" : "0",
+                                animationDelay: `${index * 100}ms`
+                              }}
+                              title={`${format(new Date(dateStr), "dd MMM yyyy", { locale: tr })}: ${formatCurrency(day.sales || 0)}`}
+                            >
+                              {/* Shine effect */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                              
+                              {/* Value inside bar if enough space */}
+                              {height > 15 && (
+                                <div className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {formatCurrency(day.sales || 0)}
+                                </div>
+                              )}
                             </div>
                           </div>
+
+                          {/* Date label */}
+                          <div className="text-center min-h-[40px] flex flex-col items-center justify-center">
+                            <p className={`text-xs font-medium ${
+                              isToday ? "text-blue-600 font-bold" : "text-muted-foreground"
+                            }`}>
+                              {format(new Date(dateStr), "dd MMM", { locale: tr })}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              {format(new Date(dateStr), "EEE", { locale: tr })}
+                            </p>
+                            {isHighest && (
+                              <span className="mt-1 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">
+                                En Yüksek
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground text-center truncate w-full">
-                          {format(new Date(dateStr), "dd MMM", { locale: tr })}
-                        </p>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Summary stats */}
+                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Ortalama Günlük</p>
+                    <p className="text-lg font-bold text-blue-700">
+                      {formatCurrency(
+                        stats.salesChartData.reduce((sum: number, day: any) => sum + (day.sales || 0), 0) / stats.salesChartData.length
+                      )}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground mb-1">En Yüksek Gün</p>
+                    <p className="text-lg font-bold text-emerald-700">
+                      {formatCurrency(
+                        Math.max(...stats.salesChartData.map((d: any) => d.sales || 0))
+                      )}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground mb-1">En Düşük Gün</p>
+                    <p className="text-lg font-bold text-orange-700">
+                      {formatCurrency(
+                        Math.min(...stats.salesChartData.map((d: any) => d.sales || 0))
+                      )}
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (
-              <p className="text-center py-8 text-muted-foreground">
-                Henüz satış verisi yok
-              </p>
+              <div className="h-80 flex flex-col items-center justify-center text-center py-8">
+                <BarChart3 className="h-16 w-16 text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground font-medium">Henüz satış verisi yok</p>
+                <p className="text-sm text-muted-foreground mt-1">İlk siparişinizi oluşturduğunuzda grafik burada görünecek</p>
+              </div>
             )}
           </CardContent>
         </Card>
