@@ -39,6 +39,7 @@
     "next-auth": "^4.24.5",
     "nodemailer": "^7.0.11",
     "react": "^18",
+    "react-day-picker": "^9.11.2",
     "react-dom": "^18",
     "react-hook-form": "^7.48.2",
     "react-to-print": "^2.14.15",
