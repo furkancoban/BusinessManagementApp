@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 export type CalendarProps = DayPickerSingleProps & {
   className?: string;
   classNames?: Record<string, string>;
+  showOutsideDays?: boolean;
 };
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
