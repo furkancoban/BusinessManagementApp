@@ -7,6 +7,8 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Loading } from "@/components/shared/loading";
+import { useSidebar } from "@/contexts/sidebar-context";
+import { cn } from "@/lib/utils";
 
 export default function DashboardLayout({
   children,
@@ -15,6 +17,7 @@ export default function DashboardLayout({
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { isOpen } = useSidebar();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -36,7 +39,10 @@ export default function DashboardLayout({
       <Sidebar />
 
       {/* Main content */}
-      <div className="lg:pl-72">
+      <div className={cn(
+        "transition-all duration-300 ease-in-out",
+        isOpen ? "lg:pl-72" : "lg:pl-0"
+      )}>
         <Header />
 
         <main className="py-8 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-8">

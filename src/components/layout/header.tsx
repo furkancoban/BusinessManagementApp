@@ -17,8 +17,10 @@ import {
   PlusCircle,
   BarChart3,
   Store,
+  PanelLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSidebar } from "@/contexts/sidebar-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +46,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { toggle: toggleSidebar } = useSidebar();
 
   return (
     <>
@@ -57,6 +60,16 @@ export function Header() {
         >
           <span className="sr-only">Menüyü aç</span>
           <Menu className="h-6 w-6" aria-hidden="true" />
+        </button>
+
+        {/* Desktop sidebar toggle button */}
+        <button
+          type="button"
+          className="-m-2.5 p-2.5 text-muted-foreground hidden lg:block hover:text-foreground transition-colors"
+          onClick={toggleSidebar}
+        >
+          <span className="sr-only">Sidebar'ı aç/kapat</span>
+          <PanelLeft className="h-6 w-6" aria-hidden="true" />
         </button>
 
         {/* Separator */}
