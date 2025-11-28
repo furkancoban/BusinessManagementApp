@@ -287,14 +287,28 @@ export default function ReportsPage() {
                       </Badge>
                       <div>
                         <p className="font-medium">{product.productName}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {product.totalQuantity} adet satıldı
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-sm text-muted-foreground">
+                            {product.totalQuantity} adet satıldı
+                          </p>
+                          <span className="text-muted-foreground">•</span>
+                          <p className={`text-sm font-medium ${
+                            product.stockQuantity === 0
+                              ? "text-red-600"
+                              : product.stockQuantity < 10
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                          }`}>
+                            {product.stockQuantity} adet kaldı
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <p className="font-semibold">
-                      {formatCurrency(product.totalRevenue)}
-                    </p>
+                    <div className="text-right">
+                      <p className="font-semibold">
+                        {formatCurrency(product.totalRevenue)}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -428,7 +442,7 @@ export default function ReportsPage() {
                   </thead>
                   <tbody>
                     {data.stockReport.map((product: any) => (
-                      <tr key={product.id} className="border-b last:border-0">
+                      <tr key={product.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                         <td className="py-3">
                           <p className="font-medium">{product.name}</p>
                           <p className="text-sm text-muted-foreground sm:hidden">
@@ -451,12 +465,18 @@ export default function ReportsPage() {
                               product.stockQuantity === 0
                                 ? "destructive"
                                 : product.stockQuantity < 10
-                                ? "warning"
-                                : "success"
+                                ? "secondary"
+                                : "default"
                             }
-                            className="min-w-[60px]"
+                            className={`min-w-[80px] ${
+                              product.stockQuantity === 0
+                                ? "bg-red-100 text-red-800 border-red-200"
+                                : product.stockQuantity < 10
+                                ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                                : "bg-green-100 text-green-800 border-green-200"
+                            }`}
                           >
-                            {product.stockQuantity} adet
+                            {product.stockQuantity} adet kaldı
                           </Badge>
                         </td>
                         <td className="py-3 text-right hidden sm:table-cell">

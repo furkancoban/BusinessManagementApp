@@ -97,9 +97,30 @@ export async function GET(request: NextRequest) {
       });
     });
 
+    // Get product details including stock for top products
+    const topProductIds = Array.from(productStats.keys());
+    const topProductDetails = await prisma.product.findMany({
+      where: {
+        id: { in: topProductIds },
+        businessId,
+      },
+      select: {
+        id: true,
+        stockQuantity: true,
+      },
+    });
+
+    const productStockMap = new Map(
+      topProductDetails.map((p) => [p.id, p.stockQuantity])
+    );
+
     const topProducts = Array.from(productStats.values())
       .sort((a, b) => b.totalRevenue - a.totalRevenue)
-      .slice(0, 5);
+      .slice(0, 5)
+      .map((product) => ({
+        ...product,
+        stockQuantity: productStockMap.get(product.productId) || 0,
+      }));
 
     // Top customers
     const customerStats = new Map<

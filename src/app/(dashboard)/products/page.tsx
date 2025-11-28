@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Package, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, Package, MoreHorizontal, Pencil, Trash2, Grid3x3, List } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { SearchInput } from "@/components/shared/search-input";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -47,6 +47,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -91,28 +92,48 @@ export default function ProductsPage() {
         }
       />
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex-1 max-w-md">
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Ürün ara (ad, SKU)..."
-          />
+      {/* Filters and View Toggle */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+            <div className="flex-1 max-w-md">
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder="Ürün ara (ad, SKU)..."
+              />
+            </div>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Kategori" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                {categories.map((cat: string) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2 border rounded-lg p-1">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Kategori" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tüm Kategoriler</SelectItem>
-            {categories.map((cat: string) => (
-              <SelectItem key={cat} value={cat}>
-                {cat}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Product List */}
@@ -140,7 +161,7 @@ export default function ProductsPage() {
           actionLabel={!search && category === "all" ? "Yeni Ürün Ekle" : undefined}
           actionHref={!search && category === "all" ? "/products/new" : undefined}
         />
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {products.map((product: any) => {
             const profitMargin = calculateProfitMargin(
@@ -246,6 +267,126 @@ export default function ProductsPage() {
             );
           })}
         </div>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="text-left p-4 font-semibold">Ürün</th>
+                    <th className="text-left p-4 font-semibold hidden sm:table-cell">SKU</th>
+                    <th className="text-left p-4 font-semibold hidden md:table-cell">Kategori</th>
+                    <th className="text-right p-4 font-semibold">Alış Fiyatı</th>
+                    <th className="text-right p-4 font-semibold">Satış Fiyatı</th>
+                    <th className="text-center p-4 font-semibold">Stok</th>
+                    <th className="text-right p-4 font-semibold hidden lg:table-cell">Kar Marjı</th>
+                    <th className="text-right p-4 font-semibold">İşlemler</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product: any) => {
+                    const profitMargin = calculateProfitMargin(
+                      product.sellPrice,
+                      product.purchasePrice
+                    );
+
+                    return (
+                      <tr key={product.id} className="border-b hover:bg-muted/30 transition-colors">
+                        <td className="p-4">
+                          <div>
+                            <p className="font-semibold text-foreground">{product.name}</p>
+                            {product.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                                {product.description}
+                              </p>
+                            )}
+                            <div className="sm:hidden mt-1">
+                              {product.sku && (
+                                <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>
+                              )}
+                              {product.category && (
+                                <Badge variant="secondary" className="text-xs mt-1">
+                                  {product.category}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 hidden sm:table-cell text-muted-foreground">
+                          {product.sku || "-"}
+                        </td>
+                        <td className="p-4 hidden md:table-cell">
+                          {product.category ? (
+                            <Badge variant="secondary">{product.category}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                        <td className="p-4 text-right">
+                          {formatCurrency(product.purchasePrice)}
+                        </td>
+                        <td className="p-4 text-right font-semibold">
+                          {formatCurrency(product.sellPrice)}
+                        </td>
+                        <td className="p-4 text-center">
+                          <Badge
+                            variant={
+                              product.stockQuantity > 10
+                                ? "default"
+                                : product.stockQuantity > 0
+                                ? "secondary"
+                                : "destructive"
+                            }
+                            className={
+                              product.stockQuantity > 10
+                                ? "bg-green-100 text-green-800 border-green-200"
+                                : product.stockQuantity > 0
+                                ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                                : ""
+                            }
+                          >
+                            {product.stockQuantity} adet
+                          </Badge>
+                        </td>
+                        <td className="p-4 text-right hidden lg:table-cell">
+                          <Badge variant={profitMargin > 20 ? "default" : "secondary"}>
+                            %{profitMargin.toFixed(0)}
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/products/${product.id}/edit`}>
+                                <Pencil className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => setDeleteId(product.id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Sil
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Delete Confirmation */}
