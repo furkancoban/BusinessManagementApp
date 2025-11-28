@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const customerId = searchParams.get("customerId") || "";
     const status = searchParams.get("status") || "";
+    const paymentType = searchParams.get("paymentType") || "";
     const startDate = searchParams.get("startDate") || "";
     const endDate = searchParams.get("endDate") || "";
     const page = parseInt(searchParams.get("page") || "1");
@@ -34,6 +35,10 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       where.status = status;
+    }
+
+    if (paymentType) {
+      where.paymentType = paymentType;
     }
 
     if (startDate || endDate) {
