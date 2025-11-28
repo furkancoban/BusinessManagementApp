@@ -447,20 +447,22 @@ export default function NewOrderPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Ödeme Tipi</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {[
-                    { value: "CASH", label: "Nakit" },
-                    { value: "CREDIT_CARD", label: "Kredi Kartı" },
-                    { value: "BANK_TRANSFER", label: "Havale/EFT" },
-                    { value: "OTHER", label: "Diğer" },
+                    { value: "CASH", label: "Nakit", icon: "💵" },
+                    { value: "CREDIT_CARD", label: "Kredi Kartı", icon: "💳" },
+                    { value: "BANK_TRANSFER", label: "Havale/EFT", icon: "🏦" },
+                    { value: "VERESIYE", label: "Veresiye", icon: "📝" },
+                    { value: "OTHER", label: "Diğer", icon: "📌" },
                   ].map((type) => (
                     <Button
                       key={type.value}
                       type="button"
                       variant={paymentType === type.value ? "default" : "outline"}
-                      className="h-12"
+                      className={`h-12 ${paymentType === type.value && type.value === "VERESIYE" ? "bg-orange-600 hover:bg-orange-700" : ""}`}
                       onClick={() => setPaymentType(type.value)}
                     >
+                      <span className="mr-2">{type.icon}</span>
                       {type.label}
                     </Button>
                   ))}

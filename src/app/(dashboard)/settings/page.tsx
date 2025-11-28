@@ -105,11 +105,26 @@ async function changePassword(data: { currentPassword: string; newPassword: stri
   return res.json();
 }
 
+async function deleteBusiness(businessId: string, password: string) {
+  const res = await fetch(`/api/business/${businessId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to delete business");
+  }
+  return res.json();
+}
+
 export default function SettingsPage() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showDeleteBusinessDialog, setShowDeleteBusinessDialog] = useState(false);
+  const [deleteBusinessPassword, setDeleteBusinessPassword] = useState("");
 
   const isAdmin = session?.user?.role === "ADMIN";
 
@@ -149,6 +164,9 @@ export default function SettingsPage() {
     mutationFn: updateSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      // Refresh session to update business name
+      window.location.reload();
       toast({
         title: "Başarılı",
         description: "İşletme bilgileri güncellendi.",
@@ -210,6 +228,30 @@ export default function SettingsPage() {
         description: "Kullanıcı silindi.",
       });
       setDeleteUserId(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error.message,
+      });
+    },
+  });
+
+  const businessDeleteMutation = useMutation({
+    mutationFn: ({ businessId, password }: { businessId: string; password: string }) =>
+      deleteBusiness(businessId, password),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      queryClient.invalidateQueries({ queryKey: ["businesses"] });
+      toast({
+        title: "Başarılı",
+        description: "İşletme silindi. Lütfen başka bir işletme seçin.",
+      });
+      setShowDeleteBusinessDialog(false);
+      setDeleteBusinessPassword("");
+      // Redirect to business switcher or setup page
+      window.location.href = "/setup";
     },
     onError: (error: Error) => {
       toast({
@@ -317,16 +359,29 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <Button type="submit" disabled={settingsMutation.isPending || !isDirty}>
-                {settingsMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Kaydediliyor...
-                  </>
-                ) : (
-                  "Değişiklikleri Kaydet"
+              <div className="flex gap-2">
+                <Button type="submit" disabled={settingsMutation.isPending || !isDirty}>
+                  {settingsMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Kaydediliyor...
+                    </>
+                  ) : (
+                    "Değişiklikleri Kaydet"
+                  )}
+                </Button>
+                {isAdmin && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setShowDeleteBusinessDialog(true)}
+                    className="ml-auto"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    İşletmeyi Sil
+                  </Button>
                 )}
-              </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
@@ -609,6 +664,88 @@ export default function SettingsPage() {
         variant="destructive"
         onConfirm={() => deleteUserId && userDeleteMutation.mutate(deleteUserId)}
       />
+
+      {/* Delete Business Dialog - Custom implementation */}
+      {showDeleteBusinessDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-destructive">İşletmeyi Sil</h2>
+              <p className="text-sm text-muted-foreground mt-2">
+                Bu işletmeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm işletme verileri (müşteriler, ürünler, siparişler) kalıcı olarak silinecektir.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="deletePassword">Güvenlik için şifrenizi girin:</Label>
+              <Input
+                id="deletePassword"
+                type="password"
+                placeholder="••••••••"
+                value={deleteBusinessPassword}
+                onChange={(e) => setDeleteBusinessPassword(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && deleteBusinessPassword && !businessDeleteMutation.isPending) {
+                    if (session?.user?.businessId) {
+                      businessDeleteMutation.mutate({
+                        businessId: session.user.businessId,
+                        password: deleteBusinessPassword,
+                      });
+                    }
+                  }
+                }}
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              ⚠️ Son işletmenizi silemezsiniz. En az bir işletmeniz kalmalıdır.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowDeleteBusinessDialog(false);
+                  setDeleteBusinessPassword("");
+                }}
+                disabled={businessDeleteMutation.isPending}
+              >
+                İptal
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (!deleteBusinessPassword) {
+                    toast({
+                      variant: "destructive",
+                      title: "Hata",
+                      description: "Lütfen şifrenizi girin.",
+                    });
+                    return;
+                  }
+                  if (session?.user?.businessId) {
+                    businessDeleteMutation.mutate({
+                      businessId: session.user.businessId,
+                      password: deleteBusinessPassword,
+                    });
+                  }
+                }}
+                disabled={!deleteBusinessPassword || businessDeleteMutation.isPending}
+              >
+                {businessDeleteMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Siliniyor...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    İşletmeyi Sil
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   Settings,
   BarChart3,
   Store,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,11 @@ const navigation = [
     name: "Siparişler",
     href: "/orders",
     icon: ShoppingCart,
+  },
+  {
+    name: "Veresiye Siparişler",
+    href: "/orders/unpaid",
+    icon: CreditCard,
   },
   {
     name: "Yeni Sipariş",

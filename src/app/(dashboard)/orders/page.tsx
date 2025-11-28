@@ -9,9 +9,12 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -30,6 +33,7 @@ import {
   formatCurrency,
   formatDateTime,
   paymentTypeLabels,
+  paymentTypeColors,
   orderStatusLabels,
   orderStatusColors,
 } from "@/lib/utils";
@@ -105,48 +109,56 @@ export default function OrdersPage() {
       />
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Durum" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tüm Durumlar</SelectItem>
-            <SelectItem value="COMPLETED">Tamamlandı</SelectItem>
-            <SelectItem value="PENDING">Beklemede</SelectItem>
-            <SelectItem value="CANCELLED">İptal Edildi</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="flex gap-2 items-center">
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-full sm:w-auto"
-            placeholder="Başlangıç"
-          />
-          <span className="text-muted-foreground">-</span>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-full sm:w-auto"
-            placeholder="Bitiş"
-          />
-        </div>
-        {(startDate || endDate || status !== "all") && (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setStatus("all");
-              setStartDate("");
-              setEndDate("");
-            }}
-          >
-            Filtreleri Temizle
-          </Button>
-        )}
-      </div>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
+            <div className="space-y-2">
+              <Label>Durum</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Durum" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tüm Durumlar</SelectItem>
+                  <SelectItem value="COMPLETED">Tamamlandı</SelectItem>
+                  <SelectItem value="PENDING">Beklemede</SelectItem>
+                  <SelectItem value="CANCELLED">İptal Edildi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 flex-1 min-w-[200px]">
+              <Label>Başlangıç Tarihi</Label>
+              <DatePicker
+                value={startDate}
+                onChange={setStartDate}
+                placeholder="Başlangıç tarihi seçin"
+              />
+            </div>
+            <div className="space-y-2 flex-1 min-w-[200px]">
+              <Label>Bitiş Tarihi</Label>
+              <DatePicker
+                value={endDate}
+                onChange={setEndDate}
+                placeholder="Bitiş tarihi seçin"
+              />
+            </div>
+            {(startDate || endDate || status !== "all") && (
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setStatus("all");
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                >
+                  Filtreleri Temizle
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Summary */}
       {orders.length > 0 && (
@@ -198,7 +210,10 @@ export default function OrdersPage() {
                       >
                         {orderStatusLabels[order.status]}
                       </Badge>
-                      <Badge variant="outline">
+                      <Badge 
+                        variant="outline"
+                        className={paymentTypeColors[order.paymentType] || ""}
+                      >
                         {paymentTypeLabels[order.paymentType]}
                       </Badge>
                     </div>

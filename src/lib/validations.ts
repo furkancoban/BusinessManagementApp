@@ -26,7 +26,7 @@ export const orderItemSchema = z.object({
 
 export const orderSchema = z.object({
   customerId: z.string().min(1, "Müşteri seçiniz"),
-  paymentType: z.enum(["CASH", "CREDIT_CARD", "BANK_TRANSFER", "OTHER"]),
+  paymentType: z.enum(["CASH", "CREDIT_CARD", "BANK_TRANSFER", "VERESIYE", "OTHER"]),
   notes: z.string().optional().nullable(),
   items: z.array(orderItemSchema).min(1, "En az bir ürün ekleyiniz"),
 });

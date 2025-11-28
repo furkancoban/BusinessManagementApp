@@ -20,6 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 
 async function fetchReports(startDate: string, endDate: string) {
@@ -53,28 +55,38 @@ export default function ReportsPage() {
       />
 
       {/* Date Range Filter */}
-      <Card>
-        <CardContent className="py-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="space-y-2">
-              <Label>Başlangıç Tarihi</Label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
+      <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Tarih Aralığı Seçimi
+          </CardTitle>
+          <CardDescription>Raporlar için tarih aralığı belirleyin</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Başlangıç Tarihi</Label>
+                <DatePicker
+                  value={startDate}
+                  onChange={setStartDate}
+                  placeholder="Başlangıç tarihi seçin"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Bitiş Tarihi</Label>
+                <DatePicker
+                  value={endDate}
+                  onChange={setEndDate}
+                  placeholder="Bitiş tarihi seçin"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Bitiş Tarihi</Label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                className="text-sm text-primary hover:underline"
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   const today = new Date();
                   setStartDate(today.toISOString().split("T")[0]);
@@ -82,10 +94,10 @@ export default function ReportsPage() {
                 }}
               >
                 Bugün
-              </button>
-              <span className="text-muted-foreground">|</span>
-              <button
-                className="text-sm text-primary hover:underline"
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   const today = new Date();
                   const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -94,10 +106,10 @@ export default function ReportsPage() {
                 }}
               >
                 Son 7 Gün
-              </button>
-              <span className="text-muted-foreground">|</span>
-              <button
-                className="text-sm text-primary hover:underline"
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   const now = new Date();
                   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -107,7 +119,48 @@ export default function ReportsPage() {
                 }}
               >
                 Bu Ay
-              </button>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const now = new Date();
+                  const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                  const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+                  setStartDate(firstDay.toISOString().split("T")[0]);
+                  setEndDate(lastDay.toISOString().split("T")[0]);
+                }}
+              >
+                Geçen Ay
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const now = new Date();
+                  const firstDay = new Date(now.getFullYear(), 0, 1);
+                  const lastDay = new Date(now.getFullYear(), 11, 31);
+                  setStartDate(firstDay.toISOString().split("T")[0]);
+                  setEndDate(lastDay.toISOString().split("T")[0]);
+                }}
+              >
+                Bu Yıl
+              </Button>
+              {(startDate || endDate) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const now = new Date();
+                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    setStartDate(firstDay.toISOString().split("T")[0]);
+                    setEndDate(lastDay.toISOString().split("T")[0]);
+                  }}
+                >
+                  Sıfırla
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -127,28 +180,81 @@ export default function ReportsPage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Toplam Satış"
-            value={formatCurrency(data?.totalSales || 0)}
-            icon={DollarSign}
-            description={`${data?.orderCount || 0} sipariş`}
-          />
-          <StatCard
-            title="Toplam Kar"
-            value={formatCurrency(data?.totalProfit || 0)}
-            icon={TrendingUp}
-            description={`%${((data?.totalProfit / data?.totalSales) * 100 || 0).toFixed(1)} kar marjı`}
-          />
-          <StatCard
-            title="Ortalama Sipariş"
-            value={formatCurrency(data?.averageOrderValue || 0)}
-            icon={BarChart3}
-          />
-          <StatCard
-            title="Yeni Müşteri"
-            value={data?.newCustomerCount || 0}
-            icon={Users}
-          />
+          <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-lg transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                  <DollarSign className="h-6 w-6" />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Toplam Satış</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {formatCurrency(data?.totalSales || 0)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {data?.orderCount || 0} sipariş
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-lg transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Toplam Kar</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {formatCurrency(data?.totalProfit || 0)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  %{((data?.totalProfit / (data?.totalSales || 1)) * 100 || 0).toFixed(1)} kar marjı
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 hover:shadow-lg transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-white">
+                  <BarChart3 className="h-6 w-6" />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Ortalama Sipariş</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {formatCurrency(data?.averageOrderValue || 0)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sipariş başına ortalama
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 hover:shadow-lg transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 text-white">
+                  <Users className="h-6 w-6" />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Yeni Müşteri</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {data?.newCustomerCount || 0}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Bu dönemde eklenen
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 

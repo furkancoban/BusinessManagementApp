@@ -59,7 +59,16 @@ export const paymentTypeLabels: Record<string, string> = {
   CASH: "Nakit",
   CREDIT_CARD: "Kredi Kartı",
   BANK_TRANSFER: "Havale/EFT",
+  VERESIYE: "Veresiye",
   OTHER: "Diğer",
+};
+
+export const paymentTypeColors: Record<string, string> = {
+  CASH: "bg-green-100 text-green-800 border-green-200",
+  CREDIT_CARD: "bg-blue-100 text-blue-800 border-blue-200",
+  BANK_TRANSFER: "bg-purple-100 text-purple-800 border-purple-200",
+  VERESIYE: "bg-orange-100 text-orange-800 border-orange-200",
+  OTHER: "bg-gray-100 text-gray-800 border-gray-200",
 };
 
 export const orderStatusLabels: Record<string, string> = {
