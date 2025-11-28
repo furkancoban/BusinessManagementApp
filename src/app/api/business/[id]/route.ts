@@ -4,11 +4,22 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Handle both sync and async params (Next.js 14+)
+    const resolvedParams = await Promise.resolve(params);
+    const businessId = resolvedParams.id;
+
+    if (!businessId) {
+      return NextResponse.json({ error: "İşletme ID gereklidir" }, { status: 400 });
     }
 
     const body = await request.json();
@@ -38,7 +49,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       where: {
         userId_businessId: {
           userId: session.user.id,
-          businessId: params.id,
+          businessId: businessId,
         },
       },
     });
@@ -61,7 +72,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     // Delete the business (cascade will handle related data)
     await prisma.business.delete({
-      where: { id: params.id },
+      where: { id: businessId },
     });
 
     return NextResponse.json({ success: true, message: "İşletme silindi" });
@@ -70,7 +81,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     if (error.code === "P2025") {
       return NextResponse.json({ error: "İşletme bulunamadı" }, { status: 404 });
     }
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 

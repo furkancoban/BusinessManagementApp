@@ -125,6 +125,7 @@ export default function SettingsPage() {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showDeleteBusinessDialog, setShowDeleteBusinessDialog] = useState(false);
   const [deleteBusinessPassword, setDeleteBusinessPassword] = useState("");
+  const [deleteBusinessError, setDeleteBusinessError] = useState<string | null>(null);
 
   const isAdmin = session?.user?.role === "ADMIN";
 
@@ -246,14 +247,16 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ["businesses"] });
       toast({
         title: "Başarılı",
-        description: "İşletme silindi. Lütfen başka bir işletme seçin.",
+        description: "İşletme silindi. Yeni bir işletme oluşturmak için yönlendiriliyorsunuz.",
       });
       setShowDeleteBusinessDialog(false);
       setDeleteBusinessPassword("");
+      setDeleteBusinessError(null);
       // Redirect to business switcher or setup page
       window.location.href = "/setup";
     },
     onError: (error: Error) => {
+      setDeleteBusinessError(error.message);
       toast({
         variant: "destructive",
         title: "Hata",
@@ -695,6 +698,9 @@ export default function SettingsPage() {
                   }
                 }}
               />
+              {deleteBusinessError && (
+                <p className="text-sm text-destructive mt-2">{deleteBusinessError}</p>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">
               ⚠️ Son işletmenizi silemezsiniz. En az bir işletmeniz kalmalıdır.
@@ -705,6 +711,7 @@ export default function SettingsPage() {
                 onClick={() => {
                   setShowDeleteBusinessDialog(false);
                   setDeleteBusinessPassword("");
+                  setDeleteBusinessError(null);
                 }}
                 disabled={businessDeleteMutation.isPending}
               >
