@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { seedBusinessData } from "../../../../prisma/seed";
 
+export const dynamic = 'force-dynamic';
+
 function generateSlug(name: string): string {
   return name.toLowerCase().replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
