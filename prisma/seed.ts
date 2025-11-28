@@ -176,11 +176,18 @@ export async function seedBusinessData(businessId: string) {
 async function main() {
   console.log("🌱 Veritabanı seed işlemi başlatılıyor...\n");
 
-  // Create demo business
-  const business = await prisma.business.upsert({
-    where: { slug: "ornek-ticaret" },
-    update: {},
-    create: {
+  // Check if any business already exists
+  const existingBusinessCount = await prisma.business.count();
+  
+  if (existingBusinessCount > 0) {
+    console.log("ℹ️  Veritabanında zaten işletme mevcut. Seed işlemi atlanıyor.");
+    console.log("   Mevcut işletmeleri silmek için önce veritabanını temizleyin.\n");
+    return;
+  }
+
+  // Create demo business only if no businesses exist
+  const business = await prisma.business.create({
+    data: {
       name: "Örnek Ticaret",
       slug: "ornek-ticaret",
       address: "Örnek Mah. No:1, Kadıköy/İstanbul",
