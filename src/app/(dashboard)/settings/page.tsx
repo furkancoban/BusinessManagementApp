@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { Loader2, Building2, User, Lock, Users, Shield, ShieldCheck, Trash2, UserCog } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Loading } from "@/components/shared/loading";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -242,18 +242,19 @@ export default function SettingsPage() {
   const businessDeleteMutation = useMutation({
     mutationFn: ({ businessId, password }: { businessId: string; password: string }) =>
       deleteBusiness(businessId, password),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
       queryClient.invalidateQueries({ queryKey: ["businesses"] });
       toast({
         title: "Başarılı",
-        description: "İşletme silindi. Yeni bir işletme oluşturmak için yönlendiriliyorsunuz.",
+        description: "İşletme silindi. Giriş sayfasına yönlendiriliyorsunuz.",
       });
       setShowDeleteBusinessDialog(false);
       setDeleteBusinessPassword("");
       setDeleteBusinessError(null);
-      // Redirect to business switcher or setup page
-      window.location.href = "/setup";
+      // Sign out and redirect to login page
+      await signOut({ redirect: false });
+      window.location.href = "/login";
     },
     onError: (error: Error) => {
       setDeleteBusinessError(error.message);
