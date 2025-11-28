@@ -53,19 +53,19 @@ export default function UnpaidOrdersPage() {
 
       {/* Summary Card */}
       <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">Toplam Ödenmemiş Tutar</p>
-              <p className="text-3xl font-bold text-orange-700">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Toplam Ödenmemiş Tutar</p>
+              <p className="text-2xl sm:text-3xl font-bold text-orange-700">
                 {formatCurrency(totalUnpaid)}
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 {orders.length} adet veresiye sipariş
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 text-white">
-              <CreditCard className="h-8 w-8" />
+            <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 text-white flex-shrink-0">
+              <CreditCard className="h-6 w-6 sm:h-8 sm:w-8" />
             </div>
           </div>
         </CardContent>
@@ -73,21 +73,21 @@ export default function UnpaidOrdersPage() {
 
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle>Filtreler</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg sm:text-xl">Filtreler</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-            <div className="space-y-2 flex-1 min-w-[200px]">
-              <Label>Başlangıç Tarihi</Label>
+            <div className="space-y-2 flex-1 min-w-0 sm:min-w-[200px]">
+              <Label className="text-sm">Başlangıç Tarihi</Label>
               <DatePicker
                 value={startDate}
                 onChange={setStartDate}
                 placeholder="Başlangıç tarihi seçin"
               />
             </div>
-            <div className="space-y-2 flex-1 min-w-[200px]">
-              <Label>Bitiş Tarihi</Label>
+            <div className="space-y-2 flex-1 min-w-0 sm:min-w-[200px]">
+              <Label className="text-sm">Bitiş Tarihi</Label>
               <DatePicker
                 value={endDate}
                 onChange={setEndDate}
@@ -95,9 +95,10 @@ export default function UnpaidOrdersPage() {
               />
             </div>
             {(startDate || endDate) && (
-              <div className="flex items-end">
+              <div className="flex items-end w-full sm:w-auto">
                 <Button
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() => {
                     setStartDate("");
                     setEndDate("");
@@ -134,65 +135,77 @@ export default function UnpaidOrdersPage() {
         <div className="space-y-4">
           {orders.map((order: any) => (
             <Card key={order.id} className="border-2 border-orange-200 hover:shadow-lg transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between gap-4">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 flex-wrap mb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
                       <Link
                         href={`/orders/${order.id}`}
-                        className="text-lg font-semibold text-foreground hover:text-primary"
+                        className="text-base sm:text-lg font-semibold text-foreground hover:text-primary break-all"
                       >
                         {order.orderNumber}
                       </Link>
-                      <Badge className={paymentTypeColors[order.paymentType] || ""}>
-                        Veresiye
-                      </Badge>
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(order.orderDate), "dd MMM yyyy", { locale: tr })}
-                      </Badge>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className={paymentTypeColors[order.paymentType] || ""}>
+                          Veresiye
+                        </Badge>
+                        <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                          <Calendar className="h-3 w-3" />
+                          <span className="hidden sm:inline">
+                            {format(new Date(order.orderDate), "dd MMM yyyy", { locale: tr })}
+                          </span>
+                          <span className="sm:hidden">
+                            {format(new Date(order.orderDate), "dd/MM/yy", { locale: tr })}
+                          </span>
+                        </Badge>
+                      </div>
                     </div>
 
                     <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium">Müşteri:</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm">
+                        <span className="font-medium text-muted-foreground">Müşteri:</span>
                         <Link
                           href={`/customers/${order.customer.id}`}
-                          className="text-primary hover:underline font-semibold"
+                          className="text-primary hover:underline font-semibold break-all"
                         >
                           {order.customer.name}
                         </Link>
                       </div>
                       {order.customer.phone && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Phone className="h-4 w-4" />
-                          <span>{order.customer.phone}</span>
+                          <Phone className="h-4 w-4 flex-shrink-0" />
+                          <a href={`tel:${order.customer.phone}`} className="hover:text-primary break-all">
+                            {order.customer.phone}
+                          </a>
                         </div>
                       )}
                       {order.customer.email && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Mail className="h-4 w-4" />
-                          <span>{order.customer.email}</span>
+                          <Mail className="h-4 w-4 flex-shrink-0" />
+                          <a href={`mailto:${order.customer.email}`} className="hover:text-primary break-all truncate">
+                            {order.customer.email}
+                          </a>
                         </div>
                       )}
                     </div>
 
-                    <div className="text-sm text-muted-foreground">
-                      {order.items.slice(0, 3).map((item: any, index: number) => (
+                    <div className="text-sm text-muted-foreground mb-3 sm:mb-0">
+                      <span className="font-medium">Ürünler: </span>
+                      {order.items.slice(0, 2).map((item: any, index: number) => (
                         <span key={item.id}>
                           {item.product.name} x{item.quantity}
-                          {index < Math.min(order.items.length, 3) - 1 && ", "}
+                          {index < Math.min(order.items.length, 2) - 1 && ", "}
                         </span>
                       ))}
-                      {order.items.length > 3 && (
-                        <span> +{order.items.length - 3} ürün daha</span>
+                      {order.items.length > 2 && (
+                        <span> +{order.items.length - 2} ürün daha</span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-3">
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-orange-700">
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-3 border-t sm:border-t-0 pt-3 sm:pt-0">
+                    <div className="text-left sm:text-right">
+                      <p className="text-xl sm:text-2xl font-bold text-orange-700">
                         {formatCurrency(order.totalAmount)}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
@@ -200,18 +213,17 @@ export default function UnpaidOrdersPage() {
                       </p>
                     </div>
 
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                      >
-                        <Link href={`/orders/${order.id}`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Detay
-                        </Link>
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="flex-shrink-0"
+                    >
+                      <Link href={`/orders/${order.id}`}>
+                        <Eye className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Detay</span>
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               </CardContent>

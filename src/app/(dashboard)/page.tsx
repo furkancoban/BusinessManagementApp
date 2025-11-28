@@ -20,6 +20,10 @@ import {
   CreditCard,
   ArrowUpRight,
   ArrowDownRight,
+  Settings,
+  List,
+  FileText,
+  Store,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/shared/stat-card";
@@ -53,10 +57,11 @@ export default function DashboardPage() {
         title="Genel Bakış"
         description="İşletmenizin güncel durumu ve performans metrikleri"
         actions={
-          <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+          <Button asChild size="default" className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-sm sm:text-base">
             <Link href="/orders/new">
-              <Plus className="mr-2 h-5 w-5" />
-              Yeni Sipariş
+              <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Yeni Sipariş</span>
+              <span className="sm:hidden">Yeni</span>
             </Link>
           </Button>
         }
@@ -403,39 +408,89 @@ export default function DashboardPage() {
         </Card>
 
         {/* Quick Actions */}
-        <Card>
+        <Card className="border-2 border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
+              <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                <Activity className="h-4 w-4" />
+              </div>
               Hızlı İşlemler
             </CardTitle>
+            <CardDescription>En sık kullanılan işlemlere hızlı erişim</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-blue-50 hover:border-blue-300 transition-all">
+            {/* Create Actions */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">Oluştur</p>
+              <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-blue-50 hover:border-blue-300 hover:shadow-md transition-all">
               <Link href="/orders/new">
-                <Plus className="mr-3 h-5 w-5" />
-                Yeni Sipariş
+                  <ShoppingCart className="mr-3 h-5 w-5 text-blue-600" />
+                  Yeni Sipariş
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-purple-50 hover:border-purple-300 transition-all">
+              <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-purple-50 hover:border-purple-300 hover:shadow-md transition-all">
               <Link href="/customers/new">
-                <Users className="mr-3 h-5 w-5" />
-                Yeni Müşteri
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-orange-50 hover:border-orange-300 transition-all">
-              <Link href="/products/new">
-                <Package className="mr-3 h-5 w-5" />
-                Yeni Ürün
-              </Link>
-            </Button>
+                  <Users className="mr-3 h-5 w-5 text-purple-600" />
+                  Yeni Müşteri
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-orange-50 hover:border-orange-300 hover:shadow-md transition-all">
+                <Link href="/products/new">
+                  <Package className="mr-3 h-5 w-5 text-orange-600" />
+                  Yeni Ürün
+                </Link>
+              </Button>
+            </div>
+
             <Separator className="my-3" />
-            <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-green-50 hover:border-green-300 transition-all">
-              <Link href="/reports">
-                <BarChart3 className="mr-3 h-5 w-5" />
-                Raporlar
-              </Link>
-            </Button>
+
+            {/* View Actions */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">Görüntüle</p>
+              <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-indigo-50 hover:border-indigo-300 hover:shadow-md transition-all">
+                <Link href="/orders">
+                  <List className="mr-3 h-5 w-5 text-indigo-600" />
+                  Tüm Siparişler
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-amber-50 hover:border-amber-300 hover:shadow-md transition-all">
+                <Link href="/orders/unpaid">
+                  <CreditCard className="mr-3 h-5 w-5 text-amber-600" />
+                  Veresiye Siparişler
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-cyan-50 hover:border-cyan-300 hover:shadow-md transition-all">
+                <Link href="/customers">
+                  <Users className="mr-3 h-5 w-5 text-cyan-600" />
+                  Müşteriler
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-md transition-all">
+                <Link href="/products">
+                  <Package className="mr-3 h-5 w-5 text-emerald-600" />
+                  Ürünler
+                </Link>
+              </Button>
+            </div>
+
+            <Separator className="my-3" />
+
+            {/* Reports & Settings */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">Raporlar & Ayarlar</p>
+              <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-green-50 hover:border-green-300 hover:shadow-md transition-all">
+                <Link href="/reports">
+                  <BarChart3 className="mr-3 h-5 w-5 text-green-600" />
+                  Raporlar
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start h-12 text-base hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all">
+                <Link href="/settings">
+                  <Settings className="mr-3 h-5 w-5 text-slate-600" />
+                  Ayarlar
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -620,7 +675,7 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-4 w-20" />
                   </div>
                 ))}
