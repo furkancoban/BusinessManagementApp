@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Package, MoreHorizontal, Pencil, Trash2, Grid3x3, List } from "lucide-react";
+import { Plus, Package, MoreHorizontal, Pencil, Trash2, Grid3x3, List, Edit2, Check, X, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { SearchInput } from "@/components/shared/search-input";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/use-toast";
 import { formatCurrency, calculateProfitMargin } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 async function fetchProducts(search: string, category: string) {
   const params = new URLSearchParams();
@@ -43,11 +44,26 @@ async function deleteProduct(id: string) {
   return res.json();
 }
 
+async function updateProductStock(id: string, stockQuantity: number) {
+  const res = await fetch(`/api/products/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ stockQuantity }),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to update stock");
+  }
+  return res.json();
+}
+
 export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [editingStockId, setEditingStockId] = useState<string | null>(null);
+  const [editingStockValue, setEditingStockValue] = useState<string>("");
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -73,6 +89,52 @@ export default function ProductsPage() {
       });
     },
   });
+
+  const stockUpdateMutation = useMutation({
+    mutationFn: ({ id, stockQuantity }: { id: string; stockQuantity: number }) =>
+      updateProductStock(id, stockQuantity),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["reports"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      toast({
+        title: "Başarılı",
+        description: "Stok miktarı güncellendi.",
+      });
+      setEditingStockId(null);
+      setEditingStockValue("");
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error.message || "Stok güncellenirken bir hata oluştu.",
+      });
+    },
+  });
+
+  const handleStartEditStock = (product: any) => {
+    setEditingStockId(product.id);
+    setEditingStockValue(product.stockQuantity.toString());
+  };
+
+  const handleCancelEditStock = () => {
+    setEditingStockId(null);
+    setEditingStockValue("");
+  };
+
+  const handleSaveStock = (productId: string) => {
+    const stockValue = parseInt(editingStockValue);
+    if (isNaN(stockValue) || stockValue < 0) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Geçerli bir stok miktarı giriniz (0 veya daha büyük).",
+      });
+      return;
+    }
+    stockUpdateMutation.mutate({ id: productId, stockQuantity: stockValue });
+  };
 
   const products = data?.products || [];
   const categories = data?.categories || [];
@@ -223,17 +285,70 @@ export default function ProductsPage() {
                       <div className="mt-4 pt-4 border-t">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Stok:</span>
-                          <Badge
-                            variant={
-                              product.stockQuantity > 10
-                                ? "success"
-                                : product.stockQuantity > 0
-                                ? "warning"
-                                : "destructive"
-                            }
-                          >
-                            {product.stockQuantity} adet
-                          </Badge>
+                          {editingStockId === product.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                min="0"
+                                value={editingStockValue}
+                                onChange={(e) => setEditingStockValue(e.target.value)}
+                                className="w-20 h-8 text-center text-sm"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleSaveStock(product.id);
+                                  } else if (e.key === "Escape") {
+                                    handleCancelEditStock();
+                                  }
+                                }}
+                                disabled={stockUpdateMutation.isPending}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleSaveStock(product.id)}
+                                disabled={stockUpdateMutation.isPending}
+                              >
+                                {stockUpdateMutation.isPending ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Check className="h-3 w-3 text-green-600" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={handleCancelEditStock}
+                                disabled={stockUpdateMutation.isPending}
+                              >
+                                <X className="h-3 w-3 text-red-600" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={
+                                  product.stockQuantity > 10
+                                    ? "success"
+                                    : product.stockQuantity > 0
+                                    ? "warning"
+                                    : "destructive"
+                                }
+                              >
+                                {product.stockQuantity} adet
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => handleStartEditStock(product)}
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -330,24 +445,77 @@ export default function ProductsPage() {
                           {formatCurrency(product.sellPrice)}
                         </td>
                         <td className="p-4 text-center">
-                          <Badge
-                            variant={
-                              product.stockQuantity > 10
-                                ? "default"
-                                : product.stockQuantity > 0
-                                ? "secondary"
-                                : "destructive"
-                            }
-                            className={
-                              product.stockQuantity > 10
-                                ? "bg-green-100 text-green-800 border-green-200"
-                                : product.stockQuantity > 0
-                                ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                                : ""
-                            }
-                          >
-                            {product.stockQuantity} adet
-                          </Badge>
+                          {editingStockId === product.id ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <Input
+                                type="number"
+                                min="0"
+                                value={editingStockValue}
+                                onChange={(e) => setEditingStockValue(e.target.value)}
+                                className="w-20 h-8 text-center text-sm"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleSaveStock(product.id);
+                                  } else if (e.key === "Escape") {
+                                    handleCancelEditStock();
+                                  }
+                                }}
+                                disabled={stockUpdateMutation.isPending}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleSaveStock(product.id)}
+                                disabled={stockUpdateMutation.isPending}
+                              >
+                                {stockUpdateMutation.isPending ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Check className="h-3 w-3 text-green-600" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={handleCancelEditStock}
+                                disabled={stockUpdateMutation.isPending}
+                              >
+                                <X className="h-3 w-3 text-red-600" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center gap-2">
+                              <Badge
+                                variant={
+                                  product.stockQuantity > 10
+                                    ? "default"
+                                    : product.stockQuantity > 0
+                                    ? "secondary"
+                                    : "destructive"
+                                }
+                                className={
+                                  product.stockQuantity > 10
+                                    ? "bg-green-100 text-green-800 border-green-200"
+                                    : product.stockQuantity > 0
+                                    ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                                    : ""
+                                }
+                              >
+                                {product.stockQuantity} adet
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleStartEditStock(product)}
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
                         </td>
                         <td className="p-4 text-right hidden lg:table-cell">
                           <Badge variant={profitMargin > 20 ? "default" : "secondary"}>
