@@ -499,15 +499,15 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Top Products */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 sm:pb-6">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Star className="h-6 w-6 sm:h-7 sm:w-7 text-yellow-500" />
                 En Çok Satan Ürünler
               </CardTitle>
-              <CardDescription>Bu ay en çok satan ürünler</CardDescription>
+              <CardDescription className="text-sm sm:text-base mt-1">Bu ay en çok satan ürünler</CardDescription>
             </div>
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
               <Link href="/products">
                 Tümünü Gör
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -518,38 +518,38 @@ export default function DashboardPage() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-20" />
+                  <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <Skeleton className="h-5 w-32 sm:h-6 sm:w-40" />
+                    <Skeleton className="h-5 w-20 sm:h-6 sm:w-24" />
                   </div>
                 ))}
               </div>
             ) : stats?.topProducts?.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {stats.topProducts.map((product: any, index: number) => (
                   <div
                     key={product.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 hover:shadow-md transition-all"
+                    className="flex items-center justify-between p-4 sm:p-5 rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 hover:shadow-lg transition-all"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 text-white font-bold text-sm">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 text-white font-bold text-base sm:text-lg flex-shrink-0">
                         {index + 1}
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-base sm:text-lg truncate">{product.name}</p>
+                        <p className="text-sm sm:text-base text-muted-foreground mt-0.5">
                           {product.quantity} adet satıldı
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-sm">{formatCurrency(product.revenue)}</p>
+                    <div className="text-right flex-shrink-0 ml-3">
+                      <p className="font-bold text-base sm:text-lg text-orange-700">{formatCurrency(product.revenue)}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-center py-8 text-muted-foreground">
+              <p className="text-center py-8 text-base sm:text-lg text-muted-foreground">
                 Henüz ürün satışı yok
               </p>
             )}
@@ -558,15 +558,15 @@ export default function DashboardPage() {
 
         {/* Top Customers */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 sm:pb-6">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-purple-500" />
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Award className="h-6 w-6 sm:h-7 sm:w-7 text-purple-500" />
                 En Çok Harcayan Müşteriler
               </CardTitle>
-              <CardDescription>Bu ay en çok harcama yapan müşteriler</CardDescription>
+              <CardDescription className="text-sm sm:text-base mt-1">Bu ay en çok harcama yapan müşteriler</CardDescription>
             </div>
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
               <Link href="/customers">
                 Tümünü Gör
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -577,39 +577,39 @@ export default function DashboardPage() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-20" />
+                  <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <Skeleton className="h-5 w-32 sm:h-6 sm:w-40" />
+                    <Skeleton className="h-5 w-20 sm:h-6 sm:w-24" />
                   </div>
                 ))}
               </div>
             ) : stats?.topCustomers?.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {stats.topCustomers.map((customer: any, index: number) => (
                   <Link
                     key={customer.id}
                     href={`/customers/${customer.id}`}
-                    className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 hover:shadow-md transition-all"
+                    className="flex items-center justify-between p-4 sm:p-5 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 hover:shadow-lg transition-all"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-pink-500 text-white font-bold text-sm">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-pink-500 text-white font-bold text-base sm:text-lg flex-shrink-0">
                         {index + 1}
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">{customer.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-base sm:text-lg truncate">{customer.name}</p>
+                        <p className="text-sm sm:text-base text-muted-foreground mt-0.5">
                           {customer.orderCount} sipariş
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-sm">{formatCurrency(customer.totalSpent)}</p>
+                    <div className="text-right flex-shrink-0 ml-3">
+                      <p className="font-bold text-base sm:text-lg text-purple-700">{formatCurrency(customer.totalSpent)}</p>
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-center py-8 text-muted-foreground">
+              <p className="text-center py-8 text-base sm:text-lg text-muted-foreground">
                 Henüz müşteri verisi yok
               </p>
             )}
@@ -622,28 +622,28 @@ export default function DashboardPage() {
         {/* Low Stock Products */}
         {stats?.lowStockProducts?.length > 0 && (
           <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-700">
-                <AlertTriangle className="h-5 w-5" />
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="flex items-center gap-2 text-red-700 text-lg sm:text-xl">
+                <AlertTriangle className="h-6 w-6 sm:h-7 sm:w-7" />
                 Düşük Stok Uyarısı
               </CardTitle>
-              <CardDescription>Stok seviyesi düşük olan ürünler</CardDescription>
+              <CardDescription className="text-sm sm:text-base mt-1">Stok seviyesi düşük olan ürünler</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {stats.lowStockProducts.map((product: any) => (
                   <Link
                     key={product.id}
                     href={`/products/${product.id}/edit`}
-                    className="flex items-center justify-between p-3 rounded-lg bg-white border border-red-200 hover:shadow-md transition-all"
+                    className="flex items-center justify-between p-4 sm:p-5 rounded-xl bg-white border-2 border-red-200 hover:shadow-lg transition-all"
                   >
-                    <div>
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base sm:text-lg truncate">{product.name}</p>
+                      <p className="text-sm sm:text-base text-muted-foreground mt-0.5">
                         Stok: {product.stockQuantity} adet
                       </p>
                     </div>
-                    <Badge variant="destructive" className="ml-2">
+                    <Badge variant="destructive" className="ml-3 text-sm sm:text-base px-3 py-1 flex-shrink-0">
                       Düşük
                     </Badge>
                   </Link>
@@ -655,15 +655,15 @@ export default function DashboardPage() {
 
         {/* Recent Orders */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 sm:pb-6">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Clock className="h-6 w-6 sm:h-7 sm:w-7" />
                 Son Siparişler
               </CardTitle>
-              <CardDescription>En son oluşturulan siparişler</CardDescription>
+              <CardDescription className="text-sm sm:text-base mt-1">En son oluşturulan siparişler</CardDescription>
             </div>
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
               <Link href="/orders">
                 Tümünü Gör
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -674,29 +674,29 @@ export default function DashboardPage() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                      <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-20" />
+                  <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                      <Skeleton className="h-5 w-32 sm:h-6 sm:w-40" />
+                    <Skeleton className="h-5 w-20 sm:h-6 sm:w-24" />
                   </div>
                 ))}
               </div>
             ) : stats?.recentOrders?.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {stats.recentOrders.map((order: any) => (
                   <Link
                     key={order.id}
                     href={`/orders/${order.id}`}
-                    className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 hover:shadow-md transition-all"
+                    className="flex items-center justify-between p-4 sm:p-5 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 hover:shadow-lg transition-all"
                   >
-                    <div>
-                      <p className="font-medium text-sm">{order.orderNumber}</p>
-                      <p className="text-xs text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base sm:text-lg truncate">{order.orderNumber}</p>
+                      <p className="text-sm sm:text-base text-muted-foreground mt-0.5">
                         {order.customer.name} • {format(new Date(order.orderDate), "dd MMM yyyy, HH:mm", { locale: tr })}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-sm">{formatCurrency(order.totalAmount)}</p>
-                      <Badge variant="secondary" className="mt-1 text-xs">
+                    <div className="text-right flex-shrink-0 ml-3">
+                      <p className="font-bold text-base sm:text-lg text-blue-700">{formatCurrency(order.totalAmount)}</p>
+                      <Badge variant="secondary" className="mt-1 text-xs sm:text-sm">
                         {paymentTypeLabels[order.paymentType]}
                       </Badge>
                     </div>
@@ -715,15 +715,15 @@ export default function DashboardPage() {
       {/* Recent Customers */}
       {stats?.recentCustomers?.length > 0 && (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 sm:pb-6">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Users className="h-6 w-6 sm:h-7 sm:w-7" />
                 Yeni Müşteriler
               </CardTitle>
-              <CardDescription>Son eklenen müşteriler</CardDescription>
+              <CardDescription className="text-sm sm:text-base mt-1">Son eklenen müşteriler</CardDescription>
             </div>
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
               <Link href="/customers">
                 Tümünü Gör
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -731,24 +731,24 @@ export default function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
               {stats.recentCustomers.map((customer: any) => (
                 <Link
                   key={customer.id}
                   href={`/customers/${customer.id}`}
-                  className="p-4 rounded-lg border bg-card hover:shadow-md transition-all"
+                  className="p-4 sm:p-5 rounded-xl border-2 bg-card hover:shadow-lg transition-all"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-semibold">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-bold text-lg sm:text-xl flex-shrink-0">
                       {customer.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{customer.name}</p>
+                      <p className="font-semibold text-base sm:text-lg truncate">{customer.name}</p>
                       {customer.email && (
-                        <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
+                        <p className="text-sm sm:text-base text-muted-foreground truncate mt-0.5">{customer.email}</p>
                       )}
                       {customer.phone && (
-                        <p className="text-xs text-muted-foreground">{customer.phone}</p>
+                        <p className="text-sm sm:text-base text-muted-foreground mt-0.5">{customer.phone}</p>
                       )}
                     </div>
                   </div>
