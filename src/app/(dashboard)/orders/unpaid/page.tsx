@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CreditCard, CheckCircle2, Eye, Phone, Mail, Calendar } from "lucide-react";
+import { CreditCard, CheckCircle2, Eye, Phone, Mail, Calendar, Download } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { toast } from "@/components/ui/use-toast";
 import { formatCurrency, formatDateTime, paymentTypeColors } from "@/lib/utils";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import { exportToCSV, formatDateTimeForExport } from "@/lib/export";
 
 async function fetchUnpaidOrders(params: Record<string, string>) {
   const searchParams = new URLSearchParams(params);
@@ -44,11 +45,38 @@ export default function UnpaidOrdersPage() {
   const orders = data?.orders || [];
   const totalUnpaid = orders.reduce((sum: number, order: any) => sum + order.totalAmount, 0);
 
+  const handleExport = () => {
+    if (!orders.length) return;
+    
+    const exportData = orders.map((order: any) => ({
+      "Sipariş No": order.orderNumber,
+      "Müşteri": order.customer.name,
+      "Telefon": order.customer.phone || "-",
+      "E-posta": order.customer.email || "-",
+      "Tarih": formatDateTimeForExport(order.orderDate),
+      "Toplam": formatCurrency(order.totalAmount),
+      "Durum": "Ödenmemiş",
+    }));
+    
+    exportToCSV(exportData, `veresiye-siparisler-${new Date().toISOString().split("T")[0]}`);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Veresiye Siparişler"
         description="Ödenmemiş veresiye siparişleri yönetimi"
+        actions={
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            disabled={isLoading || !orders.length}
+            className="hidden sm:flex"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Dışa Aktar
+          </Button>
+        }
       />
 
       {/* Summary Card */}

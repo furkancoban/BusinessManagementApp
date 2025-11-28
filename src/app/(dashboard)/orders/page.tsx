@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, ShoppingCart, MoreHorizontal, Eye, Printer, Trash2 } from "lucide-react";
+import { Plus, ShoppingCart, MoreHorizontal, Eye, Printer, Trash2, Download } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -36,6 +36,7 @@ import {
   orderStatusLabels,
   orderStatusColors,
 } from "@/lib/utils";
+import { exportToCSV, formatDateTimeForExport } from "@/lib/export";
 
 async function fetchOrders(params: Record<string, string>) {
   const searchParams = new URLSearchParams(params);
@@ -92,18 +93,46 @@ export default function OrdersPage() {
     0
   );
 
+  const handleExport = () => {
+    if (!orders.length) return;
+    
+    const exportData = orders.map((order: any) => ({
+      "Sipariş No": order.orderNumber,
+      "Müşteri": order.customer.name,
+      "Tarih": formatDateTimeForExport(order.orderDate),
+      "Toplam": formatCurrency(order.totalAmount),
+      "Ödeme Tipi": paymentTypeLabels[order.paymentType] || order.paymentType,
+      "Durum": orderStatusLabels[order.status] || order.status,
+      "Notlar": order.notes || "-",
+    }));
+    
+    exportToCSV(exportData, `siparisler-${new Date().toISOString().split("T")[0]}`);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Siparişler"
         description="Tüm siparişler ve satış geçmişi"
         actions={
-          <Button asChild size="default" className="w-full sm:w-auto text-sm sm:text-base">
-            <Link href="/orders/new">
-              <Plus className="mr-2 h-5 w-5" />
-              Yeni Sipariş
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={isLoading || !orders.length}
+              className="hidden sm:flex"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Dışa Aktar
+            </Button>
+            <Button asChild size="default" className="w-full sm:w-auto text-sm sm:text-base">
+              <Link href="/orders/new">
+                <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Yeni Sipariş</span>
+                <span className="sm:hidden">Yeni</span>
+              </Link>
+            </Button>
+          </div>
         }
       />
 

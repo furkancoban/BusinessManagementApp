@@ -178,6 +178,25 @@ export async function GET(request: NextRequest) {
     const lowStockCount = stockReport.filter((p) => p.stockQuantity < 10).length;
     const outOfStockCount = stockReport.filter((p) => p.stockQuantity === 0).length;
 
+    // Veresiye orders total (unpaid veresiye orders)
+    const veresiyeOrders = await prisma.order.findMany({
+      where: {
+        businessId,
+        paymentType: "VERESIYE",
+        status: "COMPLETED",
+        ...(startDate || endDate ? { orderDate: dateFilter } : {}),
+      },
+      select: {
+        totalAmount: true,
+      },
+    });
+
+    const totalVeresiyeAmount = veresiyeOrders.reduce(
+      (sum, order) => sum + order.totalAmount,
+      0
+    );
+    const veresiyeOrderCount = veresiyeOrders.length;
+
     return NextResponse.json({
       totalSales,
       totalProfit,
@@ -190,6 +209,8 @@ export async function GET(request: NextRequest) {
       totalStockValue,
       lowStockCount,
       outOfStockCount,
+      totalVeresiyeAmount,
+      veresiyeOrderCount,
     });
   } catch (error) {
     console.error("Reports error:", error);

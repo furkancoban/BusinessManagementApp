@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Users, MoreHorizontal, Eye, Pencil, Trash2, Phone, Mail, Grid3x3, List } from "lucide-react";
+import { Plus, Users, MoreHorizontal, Eye, Pencil, Trash2, Phone, Mail, Grid3x3, List, Download } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { SearchInput } from "@/components/shared/search-input";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/use-toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { exportToCSV, formatDateForExport } from "@/lib/export";
 
 async function fetchCustomers(search: string) {
   const res = await fetch(`/api/customers?search=${encodeURIComponent(search)}`);
@@ -65,18 +66,45 @@ export default function CustomersPage() {
 
   const customers = data?.customers || [];
 
+  const handleExport = () => {
+    if (!customers.length) return;
+    
+    const exportData = customers.map((customer: any) => ({
+      "Müşteri Adı": customer.name,
+      "Telefon": customer.phone || "-",
+      "E-posta": customer.email || "-",
+      "Adres": customer.address || "-",
+      "Notlar": customer.notes || "-",
+      "Kayıt Tarihi": customer.createdAt ? formatDateForExport(customer.createdAt) : "-",
+    }));
+    
+    exportToCSV(exportData, `musteriler-${new Date().toISOString().split("T")[0]}`);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Müşteriler"
         description="Müşteri listesi ve yönetimi"
         actions={
-          <Button asChild size="lg">
-            <Link href="/customers/new">
-              <Plus className="mr-2 h-5 w-5" />
-              Yeni Müşteri
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={isLoading || !customers.length}
+              className="hidden sm:flex"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Dışa Aktar
+            </Button>
+            <Button asChild size="default" className="w-full sm:w-auto">
+              <Link href="/customers/new">
+                <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Yeni Müşteri</span>
+                <span className="sm:hidden">Yeni</span>
+              </Link>
+            </Button>
+          </div>
         }
       />
 

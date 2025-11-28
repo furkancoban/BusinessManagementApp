@@ -42,14 +42,33 @@ async function fetchDashboardStats() {
   return res.json();
 }
 
+async function fetchNotifications() {
+  const res = await fetch("/api/notifications");
+  if (!res.ok) throw new Error("Failed to fetch notifications");
+  return res.json();
+}
+
 export default function DashboardPage() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: fetchDashboardStats,
   });
 
+  const { data: notificationsData } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: fetchNotifications,
+    refetchInterval: 60000, // Refetch every minute
+  });
+
   const monthlyGrowth = stats?.monthlyGrowth || 0;
   const isGrowthPositive = monthlyGrowth >= 0;
+  
+  const notifications = notificationsData?.notifications || {};
+  const allNotifications = [
+    ...(notifications.lowStock || []),
+    ...(notifications.outOfStock || []),
+    ...(notifications.todayOrders || []),
+  ];
 
   return (
     <div className="space-y-6">
@@ -406,6 +425,62 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Notifications Widget */}
+        {allNotifications.length > 0 && (
+          <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <AlertTriangle className="h-6 w-6 sm:h-7 sm:w-7 text-amber-600" />
+                Bildirimler
+                {notificationsData?.totalCount > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {notificationsData.totalCount}
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base mt-1">Önemli uyarılar ve bildirimler</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {allNotifications.slice(0, 5).map((notification: any) => (
+                  <Link
+                    key={notification.id}
+                    href={
+                      notification.type === "low_stock" || notification.type === "out_of_stock"
+                        ? `/products/${notification.productId}/edit`
+                        : "/orders"
+                    }
+                    className="flex items-start gap-3 p-3 rounded-lg bg-white border border-amber-200 hover:shadow-md transition-all"
+                  >
+                    <div className={`p-1.5 rounded-full ${
+                      notification.type === "out_of_stock" ? "bg-red-100" :
+                      notification.type === "low_stock" ? "bg-orange-100" :
+                      "bg-blue-100"
+                    }`}>
+                      {notification.type === "out_of_stock" ? (
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                      ) : notification.type === "low_stock" ? (
+                        <AlertTriangle className="h-4 w-4 text-orange-600" />
+                      ) : (
+                        <ShoppingCart className="h-4 w-4 text-blue-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm sm:text-base">{notification.title}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{notification.message}</p>
+                    </div>
+                  </Link>
+                ))}
+                {allNotifications.length > 5 && (
+                  <p className="text-xs text-center text-muted-foreground pt-2">
+                    +{allNotifications.length - 5} bildirim daha
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Actions */}
         <Card className="border-2 border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">

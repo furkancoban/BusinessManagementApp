@@ -83,9 +83,10 @@ export function Sidebar() {
           )}
         >
           {/* Logo */}
-          <div
+          <Link
+            href="/"
             className={cn(
-              "flex h-20 shrink-0 items-center gap-3 transition-all duration-300",
+              "flex h-20 shrink-0 items-center gap-3 transition-all duration-300 cursor-pointer hover:opacity-80",
               isOpen ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
             )}
           >
@@ -98,7 +99,7 @@ export function Sidebar() {
               </span>
               <span className="text-xs text-muted-foreground">Yönetim Sistemi</span>
             </div>
-          </div>
+          </Link>
 
           {/* Navigation */}
           <nav className="flex flex-1 flex-col">

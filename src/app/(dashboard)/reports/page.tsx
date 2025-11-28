@@ -12,6 +12,8 @@ import {
   Warehouse,
   AlertTriangle,
   PackageX,
+  CreditCard,
+  Download,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/shared/stat-card";
@@ -23,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
+import { exportToCSV, formatDateForExport, formatDateTimeForExport } from "@/lib/export";
 
 async function fetchReports(startDate: string, endDate: string) {
   const params = new URLSearchParams();
@@ -47,11 +50,83 @@ export default function ReportsPage() {
     queryFn: () => fetchReports(startDate, endDate),
   });
 
+  const handleExportSales = () => {
+    if (!data) return;
+    
+    const exportData = [
+      {
+        "Tarih Aralığı": `${startDate || "Tümü"} - ${endDate || "Tümü"}`,
+        "Toplam Satış": formatCurrency(data.totalSales || 0),
+        "Toplam Kar": formatCurrency(data.totalProfit || 0),
+        "Sipariş Sayısı": data.orderCount || 0,
+        "Ortalama Sipariş": formatCurrency(data.averageOrderValue || 0),
+        "Yeni Müşteri": data.newCustomerCount || 0,
+        "Veresiye Toplam": formatCurrency(data.totalVeresiyeAmount || 0),
+        "Veresiye Sipariş Sayısı": data.veresiyeOrderCount || 0,
+      },
+    ];
+    
+    exportToCSV(exportData, `satis-raporu-${new Date().toISOString().split("T")[0]}`);
+  };
+
+  const handleExportProducts = () => {
+    if (!data?.topProducts) return;
+    
+    const exportData = data.topProducts.map((product: any) => ({
+      "Sıra": data.topProducts.indexOf(product) + 1,
+      "Ürün Adı": product.productName,
+      "Satılan Miktar": product.totalQuantity,
+      "Toplam Gelir": formatCurrency(product.totalRevenue),
+      "Stok Miktarı": product.stockQuantity,
+    }));
+    
+    exportToCSV(exportData, `en-cok-satan-urunler-${new Date().toISOString().split("T")[0]}`);
+  };
+
+  const handleExportCustomers = () => {
+    if (!data?.topCustomers) return;
+    
+    const exportData = data.topCustomers.map((customer: any) => ({
+      "Müşteri Adı": customer.customerName,
+      "Sipariş Sayısı": customer.orderCount,
+      "Toplam Harcama": formatCurrency(customer.totalSpent),
+    }));
+    
+    exportToCSV(exportData, `en-cok-harcayan-musteriler-${new Date().toISOString().split("T")[0]}`);
+  };
+
+  const handleExportStock = () => {
+    if (!data?.stockReport) return;
+    
+    const exportData = data.stockReport.map((product: any) => ({
+      "Ürün Adı": product.name,
+      "SKU": product.sku || "-",
+      "Kategori": product.category || "-",
+      "Stok Miktarı": product.stockQuantity,
+      "Alış Fiyatı": formatCurrency(product.purchasePrice),
+      "Satış Fiyatı": formatCurrency(product.sellPrice),
+      "Stok Değeri": formatCurrency(product.stockQuantity * product.purchasePrice),
+    }));
+    
+    exportToCSV(exportData, `stok-raporu-${new Date().toISOString().split("T")[0]}`);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Raporlar"
         description="Satış ve performans raporları"
+        actions={
+          <Button
+            variant="outline"
+            onClick={handleExportSales}
+            disabled={isLoading || !data}
+            className="hidden sm:flex"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Raporu Dışa Aktar
+          </Button>
+        }
       />
 
       {/* Date Range Filter */}
@@ -180,8 +255,8 @@ export default function ReportsPage() {
 
       {/* Stats Grid */}
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {[1, 2, 3, 4, 5].map((i) => (
             <Card key={i}>
               <CardContent className="p-6">
                 <Skeleton className="h-4 w-24 mb-2" />
@@ -191,7 +266,7 @@ export default function ReportsPage() {
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-lg transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -267,6 +342,25 @@ export default function ReportsPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-50 hover:shadow-lg transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white">
+                  <CreditCard className="h-6 w-6" />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Veresiye Toplam</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {formatCurrency(data?.totalVeresiyeAmount || 0)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {data?.veresiyeOrderCount || 0} adet veresiye sipariş
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -274,10 +368,20 @@ export default function ReportsPage() {
         {/* Top Products */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              En Çok Satan Ürünler
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                En Çok Satan Ürünler
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExportProducts}
+                disabled={isLoading || !data?.topProducts?.length}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -335,10 +439,20 @@ export default function ReportsPage() {
         {/* Top Customers */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              En İyi Müşteriler
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                En İyi Müşteriler
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExportCustomers}
+                disabled={isLoading || !data?.topCustomers?.length}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -382,10 +496,20 @@ export default function ReportsPage() {
 
       {/* Stock Report Section */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Warehouse className="h-6 w-6" />
-          Stok Raporu
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Warehouse className="h-6 w-6" />
+            Stok Raporu
+          </h2>
+          <Button
+            variant="outline"
+            onClick={handleExportStock}
+            disabled={isLoading || !data?.stockReport?.length}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Stok Raporunu Dışa Aktar
+          </Button>
+        </div>
 
         {/* Stock Stats */}
         {isLoading ? (

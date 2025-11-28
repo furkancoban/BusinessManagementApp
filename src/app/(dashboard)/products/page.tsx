@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Package, MoreHorizontal, Pencil, Trash2, Grid3x3, List, Edit2, Check, X, Loader2 } from "lucide-react";
+import { Plus, Package, MoreHorizontal, Pencil, Trash2, Grid3x3, List, Edit2, Check, X, Loader2, Download } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { SearchInput } from "@/components/shared/search-input";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/use-toast";
 import { formatCurrency, calculateProfitMargin } from "@/lib/utils";
+import { exportToCSV } from "@/lib/export";
 import { Input } from "@/components/ui/input";
 
 async function fetchProducts(search: string, category: string) {
@@ -139,18 +140,47 @@ export default function ProductsPage() {
   const products = data?.products || [];
   const categories = data?.categories || [];
 
+  const handleExport = () => {
+    if (!products.length) return;
+    
+    const exportData = products.map((product: any) => ({
+      "Ürün Adı": product.name,
+      "SKU": product.sku || "-",
+      "Kategori": product.category || "-",
+      "Açıklama": product.description || "-",
+      "Alış Fiyatı": formatCurrency(product.purchasePrice),
+      "Satış Fiyatı": formatCurrency(product.sellPrice),
+      "Stok Miktarı": product.stockQuantity,
+      "Kar Marjı": `%${calculateProfitMargin(product.sellPrice, product.purchasePrice).toFixed(2)}`,
+    }));
+    
+    exportToCSV(exportData, `urunler-${new Date().toISOString().split("T")[0]}`);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Ürünler"
         description="Ürün listesi ve yönetimi"
         actions={
-          <Button asChild size="lg">
-            <Link href="/products/new">
-              <Plus className="mr-2 h-5 w-5" />
-              Yeni Ürün
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={isLoading || !products.length}
+              className="hidden sm:flex"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Dışa Aktar
+            </Button>
+            <Button asChild size="default" className="w-full sm:w-auto">
+              <Link href="/products/new">
+                <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Yeni Ürün</span>
+                <span className="sm:hidden">Yeni</span>
+              </Link>
+            </Button>
+          </div>
         }
       />
 

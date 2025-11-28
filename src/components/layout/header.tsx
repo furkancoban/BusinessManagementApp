@@ -18,6 +18,8 @@ import {
   BarChart3,
   Store,
   PanelLeft,
+  Bell,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/sidebar-context";
@@ -30,7 +32,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BusinessSwitcher } from "./business-switcher";
+import { GlobalSearch } from "@/components/shared/global-search";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const navigation = [
   { name: "Ana Sayfa", href: "/", icon: LayoutDashboard },
@@ -42,11 +52,30 @@ const navigation = [
   { name: "Ayarlar", href: "/settings", icon: Settings },
 ];
 
+async function fetchNotifications() {
+  const res = await fetch("/api/notifications");
+  if (!res.ok) throw new Error("Failed to fetch notifications");
+  return res.json();
+}
+
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
   const { toggle: toggleSidebar } = useSidebar();
+
+  const { data: notificationsData } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: fetchNotifications,
+    refetchInterval: 60000,
+  });
+
+  const notifications = notificationsData?.notifications || {};
+  const allNotifications = [
+    ...(notifications.lowStock || []),
+    ...(notifications.outOfStock || []),
+    ...(notifications.todayOrders || []),
+  ];
 
   return (
     <>
@@ -76,19 +105,86 @@ export function Header() {
         <div className="h-6 w-px bg-border lg:hidden" aria-hidden="true" />
 
         <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-          <div className="flex flex-1 items-center">
+          <div className="flex flex-1 items-center gap-4">
             {/* Mobile Logo */}
-            <div className="flex items-center gap-2 lg:hidden">
+            <Link href="/" className="flex items-center gap-2 lg:hidden hover:opacity-80 transition-opacity">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                 <Store className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-lg font-bold">İşletme Yönetim</span>
+            </Link>
+            {/* Global Search - Desktop */}
+            <div className="hidden lg:block flex-1 max-w-md">
+              <GlobalSearch />
             </div>
           </div>
 
           <div className="flex items-center gap-x-3 lg:gap-x-4">
             {/* Business Switcher */}
             <BusinessSwitcher />
+
+            {/* Notifications */}
+            {notificationsData?.totalCount > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      {notificationsData.totalCount > 9 ? "9+" : notificationsData.totalCount}
+                    </Badge>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <div className="p-4 border-b">
+                    <h4 className="font-semibold">Bildirimler</h4>
+                  </div>
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {allNotifications.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        Bildirim yok
+                      </div>
+                    ) : (
+                      <div className="divide-y">
+                        {allNotifications.slice(0, 10).map((notification: any) => (
+                          <Link
+                            key={notification.id}
+                            href={
+                              notification.type === "low_stock" || notification.type === "out_of_stock"
+                                ? `/products/${notification.productId}/edit`
+                                : "/orders"
+                            }
+                            className="block p-4 hover:bg-muted transition-colors"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`p-1.5 rounded-full ${
+                                notification.type === "out_of_stock" ? "bg-red-100" :
+                                notification.type === "low_stock" ? "bg-orange-100" :
+                                "bg-blue-100"
+                              }`}>
+                                {notification.type === "out_of_stock" ? (
+                                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                                ) : notification.type === "low_stock" ? (
+                                  <AlertTriangle className="h-4 w-4 text-orange-600" />
+                                ) : (
+                                  <ShoppingCart className="h-4 w-4 text-blue-600" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm">{notification.title}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{notification.message}</p>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
 
             {/* User dropdown */}
             <DropdownMenu>
@@ -154,12 +250,12 @@ export function Header() {
           {/* Menu panel */}
           <div className="fixed inset-y-0 left-0 z-50 w-full max-w-xs overflow-y-auto bg-background px-6 py-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" onClick={() => setMobileMenuOpen(false)}>
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                   <Store className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <span className="text-lg font-bold">İşletme Yönetim</span>
-              </div>
+              </Link>
               <button
                 type="button"
                 className="-m-2.5 rounded-md p-2.5 text-muted-foreground"
