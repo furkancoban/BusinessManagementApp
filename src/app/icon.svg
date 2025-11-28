@@ -1,0 +1,42 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <rect width="64" height="64" rx="14" fill="url(#gradient)"/>
+  
+  <!-- Store/Building icon -->
+  <g transform="translate(10, 8)">
+    <!-- Building base -->
+    <rect x="8" y="28" width="36" height="28" fill="white" rx="2"/>
+    <!-- Building roof -->
+    <path d="M0 28 L26 4 L52 28 Z" fill="white" opacity="0.95"/>
+    <!-- Windows left column -->
+    <rect x="12" y="32" width="6" height="6" fill="#3B82F6" rx="0.8"/>
+    <rect x="12" y="40" width="6" height="6" fill="#3B82F6" rx="0.8"/>
+    <rect x="12" y="48" width="6" height="6" fill="#3B82F6" rx="0.8"/>
+    <!-- Windows right column -->
+    <rect x="34" y="32" width="6" height="6" fill="#3B82F6" rx="0.8"/>
+    <rect x="34" y="40" width="6" height="6" fill="#3B82F6" rx="0.8"/>
+    <rect x="34" y="48" width="6" height="6" fill="#3B82F6" rx="0.8"/>
+    <!-- Door -->
+    <rect x="21" y="46" width="8" height="10" fill="#3B82F6" rx="1.2"/>
+    <!-- Door handle -->
+    <circle cx="26" cy="51" r="1" fill="white"/>
+  </g>
+  
+  <!-- Chart/Graph icon overlay (top right corner) -->
+  <g transform="translate(40, 8)">
+    <path d="M2 12 L5 8 L8 10 L12 4" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="2" cy="12" r="2" fill="white"/>
+    <circle cx="5" cy="8" r="2" fill="white"/>
+    <circle cx="8" cy="10" r="2" fill="white"/>
+    <circle cx="12" cy="4" r="2" fill="white"/>
+  </g>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+</svg>

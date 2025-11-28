@@ -15,6 +15,10 @@ export const metadata: Metadata = {
     template: "%s | İşletme Yönetim Sistemi",
   },
   description: "Küçük işletmeler için müşteri, ürün, sipariş ve stok yönetim sistemi",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

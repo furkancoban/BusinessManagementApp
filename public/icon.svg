@@ -1,0 +1,41 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <circle cx="32" cy="32" r="32" fill="url(#gradient)"/>
+  
+  <!-- Store/Building icon -->
+  <g transform="translate(12, 10)">
+    <!-- Building base -->
+    <rect x="6" y="24" width="32" height="24" fill="white" rx="2"/>
+    <!-- Building roof -->
+    <path d="M0 24 L22 6 L44 24 Z" fill="white" opacity="0.95"/>
+    <!-- Windows left -->
+    <rect x="10" y="28" width="5" height="5" fill="#3B82F6" rx="0.5"/>
+    <rect x="10" y="35" width="5" height="5" fill="#3B82F6" rx="0.5"/>
+    <!-- Windows right -->
+    <rect x="29" y="28" width="5" height="5" fill="#3B82F6" rx="0.5"/>
+    <rect x="29" y="35" width="5" height="5" fill="#3B82F6" rx="0.5"/>
+    <!-- Door -->
+    <rect x="18" y="38" width="6" height="10" fill="#3B82F6" rx="1"/>
+    <!-- Door handle -->
+    <circle cx="22" cy="43" r="0.8" fill="white"/>
+  </g>
+  
+  <!-- Chart/Graph icon overlay (bottom right) -->
+  <g transform="translate(38, 38)">
+    <path d="M2 10 L5 6 L8 8 L12 3" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="2" cy="10" r="2" fill="white"/>
+    <circle cx="5" cy="6" r="2" fill="white"/>
+    <circle cx="8" cy="8" r="2" fill="white"/>
+    <circle cx="12" cy="3" r="2" fill="white"/>
+  </g>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+</svg>
+

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CreditCard, CheckCircle2, ArrowRight, Eye, Phone, Mail, Calendar } from "lucide-react";
+import { CreditCard, CheckCircle2, Eye, Phone, Mail, Calendar } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -25,18 +25,6 @@ async function fetchUnpaidOrders(params: Record<string, string>) {
   return res.json();
 }
 
-async function markAsPaid(orderId: string, paymentType: string) {
-  const res = await fetch(`/api/orders/${orderId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ paymentType }),
-  });
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.error || "Failed to update order");
-  }
-  return res.json();
-}
 
 export default function UnpaidOrdersPage() {
   const [startDate, setStartDate] = useState("");
@@ -52,26 +40,6 @@ export default function UnpaidOrdersPage() {
     queryFn: () => fetchUnpaidOrders(queryParams),
   });
 
-  const markPaidMutation = useMutation({
-    mutationFn: ({ orderId, paymentType }: { orderId: string; paymentType: string }) =>
-      markAsPaid(orderId, paymentType),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["unpaid-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      toast({
-        title: "Başarılı",
-        description: "Sipariş ödendi olarak işaretlendi.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: error.message,
-      });
-    },
-  });
 
   const orders = data?.orders || [];
   const totalUnpaid = orders.reduce((sum: number, order: any) => sum + order.totalAmount, 0);
@@ -242,20 +210,6 @@ export default function UnpaidOrdersPage() {
                           <Eye className="h-4 w-4 mr-2" />
                           Detay
                         </Link>
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700"
-                        onClick={() => {
-                          markPaidMutation.mutate({
-                            orderId: order.id,
-                            paymentType: "CASH",
-                          });
-                        }}
-                        disabled={markPaidMutation.isPending}
-                      >
-                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Ödendi
                       </Button>
                     </div>
                   </div>
