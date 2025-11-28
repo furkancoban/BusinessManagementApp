@@ -43,6 +43,7 @@ interface OrderItem {
   quantity: number;
   unitPrice: number;
   defaultPrice: number;
+  stockQuantity: number;
 }
 
 async function fetchCustomers() {
@@ -128,13 +129,31 @@ export default function NewOrderPage() {
   );
 
   const addProduct = (product: any) => {
+    if (product.stockQuantity <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Stokta Yok",
+        description: `${product.name} ürünü stokta bulunmuyor.`,
+      });
+      return;
+    }
+
     const existingItem = items.find((item) => item.productId === product.id);
     
     if (existingItem) {
+      const newQuantity = existingItem.quantity + 1;
+      if (newQuantity > product.stockQuantity) {
+        toast({
+          variant: "destructive",
+          title: "Yetersiz Stok",
+          description: `${product.name} ürününden stokta sadece ${product.stockQuantity} adet bulunmaktadır.`,
+        });
+        return;
+      }
       setItems(
         items.map((item) =>
           item.productId === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: newQuantity }
             : item
         )
       );
@@ -147,6 +166,7 @@ export default function NewOrderPage() {
           quantity: 1,
           unitPrice: product.sellPrice,
           defaultPrice: product.sellPrice,
+          stockQuantity: product.stockQuantity,
         },
       ]);
     }
@@ -155,14 +175,32 @@ export default function NewOrderPage() {
   };
 
   const updateQuantity = (productId: string, delta: number) => {
+    const item = items.find((i) => i.productId === productId);
+    if (!item) return;
+
+    const newQuantity = item.quantity + delta;
+    
+    if (newQuantity < 0) {
+      return;
+    }
+
+    if (newQuantity > item.stockQuantity) {
+      toast({
+        variant: "destructive",
+        title: "Yetersiz Stok",
+        description: `${item.productName} ürününden stokta sadece ${item.stockQuantity} adet bulunmaktadır.`,
+      });
+      return;
+    }
+
     setItems(
       items
-        .map((item) =>
-          item.productId === productId
-            ? { ...item, quantity: Math.max(0, item.quantity + delta) }
-            : item
+        .map((i) =>
+          i.productId === productId
+            ? { ...i, quantity: newQuantity }
+            : i
         )
-        .filter((item) => item.quantity > 0)
+        .filter((i) => i.quantity > 0)
     );
   };
 
@@ -332,17 +370,35 @@ export default function NewOrderPage() {
                       {filteredProducts.map((product: any) => (
                         <button
                           key={product.id}
-                          className="w-full p-3 text-left rounded-lg hover:bg-muted transition-colors"
+                          className={`w-full p-3 text-left rounded-lg transition-colors ${
+                            product.stockQuantity <= 0
+                              ? "opacity-50 cursor-not-allowed bg-muted"
+                              : "hover:bg-muted"
+                          }`}
                           onClick={() => addProduct(product)}
+                          disabled={product.stockQuantity <= 0}
                         >
                           <div className="flex items-center justify-between">
-                            <div>
+                            <div className="flex-1">
                               <p className="font-medium">{product.name}</p>
-                              {product.sku && (
-                                <p className="text-sm text-muted-foreground">
-                                  SKU: {product.sku}
-                                </p>
-                              )}
+                              <div className="flex items-center gap-2 mt-1">
+                                {product.sku && (
+                                  <p className="text-sm text-muted-foreground">
+                                    SKU: {product.sku}
+                                  </p>
+                                )}
+                                <span
+                                  className={`text-xs px-2 py-0.5 rounded ${
+                                    product.stockQuantity <= 0
+                                      ? "bg-red-100 text-red-800"
+                                      : product.stockQuantity < 10
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-green-100 text-green-800"
+                                  }`}
+                                >
+                                  Stok: {product.stockQuantity}
+                                </span>
+                              </div>
                             </div>
                             <p className="font-semibold">
                               {formatCurrency(product.sellPrice)}
@@ -391,14 +447,20 @@ export default function NewOrderPage() {
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="w-10 text-center font-semibold">
-                          {item.quantity}
-                        </span>
+                        <div className="flex flex-col items-center">
+                          <span className="w-10 text-center font-semibold">
+                            {item.quantity}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            / {item.stockQuantity}
+                          </span>
+                        </div>
                         <Button
                           variant="outline"
                           size="icon"
                           className="h-10 w-10"
                           onClick={() => updateQuantity(item.productId, 1)}
+                          disabled={item.quantity >= item.stockQuantity}
                         >
                           <Plus className="h-4 w-4" />
                         </Button>

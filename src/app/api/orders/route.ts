@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
     const orderNumber = `SIP-${year}-${nextNumber.toString().padStart(4, "0")}`;
 
-    // Get product details for purchase prices
+    // Get product details for purchase prices and stock check
     const productIds = items.map((item: any) => item.productId);
     const products = await prisma.product.findMany({
       where: { 
@@ -145,18 +145,27 @@ export async function POST(request: NextRequest) {
     });
     const productMap = new Map(products.map((p) => [p.id, p]));
 
-    // Calculate totals
+    // Check stock availability and calculate totals
     const orderItems = items.map((item: any) => {
       const product = productMap.get(item.productId);
       if (!product) {
-        throw new Error(`Product not found: ${item.productId}`);
+        throw new Error(`Ürün bulunamadı: ${item.productId}`);
       }
+      
+      // Check stock availability
+      if (product.stockQuantity < item.quantity) {
+        throw new Error(
+          `${product.name} ürününden stokta sadece ${product.stockQuantity} adet bulunmaktadır. Sipariş edilen miktar: ${item.quantity}`
+        );
+      }
+
       return {
         productId: item.productId,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         purchasePrice: product.purchasePrice,
         subtotal: item.quantity * item.unitPrice,
+        product: product, // Store product for stock update
       };
     });
 
@@ -165,29 +174,52 @@ export async function POST(request: NextRequest) {
       0
     );
 
-    // Create order with items
-    const order = await prisma.order.create({
-      data: {
-        orderNumber,
-        businessId: session.user.businessId,
-        customerId,
-        totalAmount,
-        paymentType: paymentType || "CASH",
-        status: "COMPLETED",
-        notes: notes || null,
-        createdById: session.user.id,
-        items: {
-          create: orderItems,
-        },
-      },
-      include: {
-        customer: true,
-        items: {
-          include: {
-            product: true,
+    // Use transaction to ensure atomicity
+    const order = await prisma.$transaction(async (tx) => {
+      // Create order with items
+      const newOrder = await tx.order.create({
+        data: {
+          orderNumber,
+          businessId: session.user.businessId,
+          customerId,
+          totalAmount,
+          paymentType: paymentType || "CASH",
+          status: "COMPLETED",
+          notes: notes || null,
+          createdById: session.user.id,
+          items: {
+            create: orderItems.map((item: any) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              purchasePrice: item.purchasePrice,
+              subtotal: item.subtotal,
+            })),
           },
         },
-      },
+        include: {
+          customer: true,
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      // Update stock quantities
+      for (const item of orderItems) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            stockQuantity: {
+              decrement: item.quantity,
+            },
+          },
+        });
+      }
+
+      return newOrder;
     });
 
     return NextResponse.json(order, { status: 201 });
