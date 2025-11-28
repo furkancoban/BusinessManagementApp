@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Business/Tenant model - each business has isolated data
+model Business {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  address   String?
+  phone     String?
+  email     String?
+  taxNumber String?
+  logo      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      UserBusiness[]
+  customers  Customer[]
+  products   Product[]
+  orders     Order[]
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String
+  name            String
+  isActive        Boolean   @default(true)
+  emailVerified   Boolean   @default(false)
+  verifyToken     String?   @unique
+  verifyTokenExp  DateTime?
+  resetToken      String?   @unique
+  resetTokenExp   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  businesses       UserBusiness[]
+  createdCustomers Customer[]
+  createdOrders    Order[]
+}
+
+model UserBusiness {
+  id         String   @id @default(cuid())
+  userId     String
+  businessId String
+  role       String   @default("STAFF")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, businessId])
+  @@index([userId])
+  @@index([businessId])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  notes     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  businessId  String
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+  createdById String?
+  orders      Order[]
+
+  @@index([businessId])
+  @@index([name])
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  sku           String?
+  description   String?
+  category      String?
+  purchasePrice Float
+  sellPrice     Float
+  stockQuantity Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  business   Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  businessId String
+  orderItems OrderItem[]
+
+  @@unique([businessId, sku])
+  @@index([businessId])
+  @@index([name])
+  @@index([category])
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  orderNumber String
+  orderDate   DateTime @default(now())
+  totalAmount Float
+  paymentType String   @default("CASH")
+  status      String   @default("COMPLETED")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business    Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  businessId  String
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  customerId  String
+  createdBy   User?       @relation(fields: [createdById], references: [id])
+  createdById String?
+  items       OrderItem[]
+
+  @@unique([businessId, orderNumber])
+  @@index([businessId])
+  @@index([orderNumber])
+  @@index([orderDate])
+  @@index([customerId])
+}
+
+model OrderItem {
+  id            String @id @default(cuid())
+  quantity      Int
+  unitPrice     Float
+  purchasePrice Float
+  subtotal      Float
+
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+
+  @@index([orderId])
+  @@index([productId])
+}

@@ -1,0 +1,73 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user.businessId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const searchParams = request.nextUrl.searchParams;
+    const customerId = searchParams.get("customerId") || "";
+    const status = searchParams.get("status") || "";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const skip = (page - 1) * limit;
+
+    const where: any = { businessId: session.user.businessId };
+    if (customerId) where.customerId = customerId;
+    if (status) where.status = status;
+
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({ where, skip, take: limit, orderBy: { orderDate: "desc" }, include: { customer: { select: { id: true, name: true, phone: true } }, items: { include: { product: { select: { name: true } } } } } }),
+      prisma.order.count({ where }),
+    ]);
+
+    return NextResponse.json({ orders, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
+  } catch (error) {
+    console.error("Get orders error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user.businessId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await request.json();
+    const { customerId, paymentType, notes, items } = body;
+
+    if (!customerId || !items || items.length === 0) return NextResponse.json({ error: "Müşteri ve ürün gereklidir" }, { status: 400 });
+
+    const year = new Date().getFullYear();
+    const lastOrder = await prisma.order.findFirst({ where: { businessId: session.user.businessId, orderNumber: { startsWith: `SIP-${year}-` } }, orderBy: { orderNumber: "desc" } });
+    let nextNumber = 1;
+    if (lastOrder) nextNumber = parseInt(lastOrder.orderNumber.split("-")[2]) + 1;
+    const orderNumber = `SIP-${year}-${nextNumber.toString().padStart(4, "0")}`;
+
+    const productIds = items.map((item: any) => item.productId);
+    const products = await prisma.product.findMany({ where: { id: { in: productIds }, businessId: session.user.businessId } });
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
+    const orderItems = items.map((item: any) => {
+      const product = productMap.get(item.productId);
+      if (!product) throw new Error(`Product not found: ${item.productId}`);
+      return { productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, purchasePrice: product.purchasePrice, subtotal: item.quantity * item.unitPrice };
+    });
+
+    const totalAmount = orderItems.reduce((sum: number, item: any) => sum + item.subtotal, 0);
+
+    const order = await prisma.order.create({
+      data: { orderNumber, businessId: session.user.businessId, customerId, totalAmount, paymentType: paymentType || "CASH", status: "COMPLETED", notes: notes || null, createdById: session.user.id, items: { create: orderItems } },
+      include: { customer: true, items: { include: { product: true } } },
+    });
+
+    return NextResponse.json(order, { status: 201 });
+  } catch (error: any) {
+    console.error("Create order error:", error);
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+  }
+}
+
