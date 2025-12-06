@@ -256,97 +256,155 @@ export default function OrderDetailPage({
         <CardContent>
           <div
             ref={receiptRef}
-            className="max-w-md mx-auto bg-white text-black p-6 font-mono text-sm"
-            style={{ fontFamily: "monospace" }}
+            className="max-w-md mx-auto bg-white text-black p-6"
+            style={{ fontFamily: "'Courier New', monospace" }}
           >
-            {/* Header */}
-            <div className="text-center mb-4">
-              <h2 className="text-xl font-bold">
+            {/* Header - Modern Business Style */}
+            <div className="text-center mb-4 border-b-2 border-gray-800 pb-3">
+              <h2 className="text-2xl font-bold mb-1 uppercase tracking-wide">
                 {businessInfo?.name || "İşletme Yönetim Sistemi"}
               </h2>
               {businessInfo?.address && (
-                <p className="text-xs">{businessInfo.address}</p>
+                <p className="text-xs font-medium">{businessInfo.address}</p>
               )}
-              {businessInfo?.phone && (
-                <p className="text-xs">Tel: {businessInfo.phone}</p>
-              )}
+              <div className="flex justify-center items-center gap-3 mt-1 text-xs">
+                {businessInfo?.phone && (
+                  <span className="font-medium">Tel: {businessInfo.phone}</span>
+                )}
+                {businessInfo?.email && (
+                  <span className="font-medium">E-posta: {businessInfo.email}</span>
+                )}
+              </div>
               {businessInfo?.taxNumber && (
-                <p className="text-xs">Vergi No: {businessInfo.taxNumber}</p>
+                <p className="text-xs font-medium mt-1">Vergi No: {businessInfo.taxNumber}</p>
               )}
             </div>
 
-            <div className="border-t border-b border-dashed border-gray-400 py-2 my-2">
-              <p>Sipariş No: {order.orderNumber}</p>
-              <p>Tarih: {formatDateTime(order.orderDate)}</p>
+            {/* Order Info */}
+            <div className="border-b border-dashed border-gray-400 py-2 my-2">
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-semibold">Sipariş No:</span>
+                <span className="font-bold">{order.orderNumber}</span>
+              </div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-semibold">Tarih:</span>
+                <span>{formatDateTime(order.orderDate)}</span>
+              </div>
               {order.createdBy?.name && (
-                <p>Personel: {order.createdBy.name}</p>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Personel:</span>
+                  <span>{order.createdBy.name}</span>
+                </div>
               )}
             </div>
 
-            {/* Customer */}
-            <div className="border-b border-dashed border-gray-400 py-2 mb-2">
-              <p>Müşteri: {order.customer.name}</p>
-              {order.customer.phone && <p>Tel: {order.customer.phone}</p>}
-              {order.customer.email && <p>E-posta: {order.customer.email}</p>}
+            {/* Customer Info - Enhanced */}
+            <div className="border-b-2 border-gray-800 py-3 mb-3">
+              <p className="font-bold text-sm mb-2 uppercase">Müşteri Bilgileri</p>
+              <div className="space-y-1 text-sm">
+                <p className="font-semibold">Adı: {order.customer.name}</p>
+                {order.customer.phone && (
+                  <p>Telefon: {order.customer.phone}</p>
+                )}
+                {order.customer.email && (
+                  <p>E-posta: {order.customer.email}</p>
+                )}
+                {order.customer.address && (
+                  <p className="text-xs">Adres: {order.customer.address}</p>
+                )}
+              </div>
             </div>
 
-            {/* Items */}
-            <table className="w-full mb-2">
-              <thead>
-                <tr className="border-b border-gray-400">
-                  <th className="text-left py-1">Ürün</th>
-                  <th className="text-center py-1">Adet</th>
-                  <th className="text-right py-1">Fiyat</th>
-                  <th className="text-right py-1">Toplam</th>
-                </tr>
-              </thead>
-              <tbody>
-                {order.items.map((item: any) => (
-                  <tr key={item.id}>
-                    <td className="py-1 text-xs">{item.product.name}</td>
-                    <td className="text-center py-1">{item.quantity}</td>
-                    <td className="text-right py-1">
-                      {formatCurrency(item.unitPrice)}
-                    </td>
-                    <td className="text-right py-1">
-                      {formatCurrency(item.subtotal)}
-                    </td>
+            {/* Items Table - Modern */}
+            <div className="mb-3">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-gray-800">
+                    <th className="text-left py-2 text-xs font-bold uppercase">Ürün</th>
+                    <th className="text-center py-2 text-xs font-bold uppercase">Adet</th>
+                    <th className="text-right py-2 text-xs font-bold uppercase">Birim Fiyat</th>
+                    <th className="text-right py-2 text-xs font-bold uppercase">Toplam</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {order.items.map((item: any, index: number) => (
+                    <tr key={item.id} className={index !== order.items.length - 1 ? "border-b border-gray-300" : ""}>
+                      <td className="py-2 text-sm">{item.product.name}</td>
+                      <td className="text-center py-2 text-sm font-medium">{item.quantity}</td>
+                      <td className="text-right py-2 text-sm">{formatCurrency(item.unitPrice)}</td>
+                      <td className="text-right py-2 text-sm font-semibold">{formatCurrency(item.subtotal)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-            <div className="border-t border-dashed border-gray-400 pt-2">
-              <div className="mb-2">
-                <p>Toplam Ürün Adedi: {order.items.reduce((sum: number, item: any) => sum + item.quantity, 0)} adet</p>
+            {/* Totals */}
+            <div className="border-t-2 border-gray-800 pt-3 mb-3">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-semibold">Toplam Ürün Adedi:</span>
+                <span className="font-bold">{order.items.reduce((sum: number, item: any) => sum + item.quantity, 0)} adet</span>
               </div>
-              <div className="flex justify-between font-bold text-lg">
-                <span>TOPLAM:</span>
-                <span>{formatCurrency(order.totalAmount)}</span>
+              <div className="flex justify-between items-center pt-2 border-t border-gray-400">
+                <span className="text-lg font-bold uppercase">Genel Toplam:</span>
+                <span className="text-xl font-bold">{formatCurrency(order.totalAmount)}</span>
               </div>
             </div>
 
-            <div className="border-t border-dashed border-gray-400 py-2 mt-2">
-              <p>Ödeme: {paymentTypeLabels[order.paymentType]}</p>
-              <p>Durum: {orderStatusLabels[order.status]}</p>
+            {/* Payment & Status Info */}
+            <div className="border-t border-dashed border-gray-400 py-3 mb-3">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="font-semibold">Ödeme Yöntemi:</span>
+                  <p className="mt-1">{paymentTypeLabels[order.paymentType]}</p>
+                </div>
+                <div>
+                  <span className="font-semibold">Sipariş Durumu:</span>
+                  <p className="mt-1">{orderStatusLabels[order.status]}</p>
+                </div>
+              </div>
+              
+              {/* Debt Information */}
               {debtInfo && (
-                <>
-                  <p className="mt-2 font-semibold">Önceki Borç: {formatCurrency(debtInfo.previousDebt)}</p>
-                  <p className="font-semibold">Toplam Borç: {formatCurrency(debtInfo.totalDebtAfter)}</p>
-                </>
+                <div className="mt-3 pt-3 border-t border-dashed border-gray-400">
+                  <p className="font-bold text-sm mb-1">Borç Bilgileri:</p>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Önceki Borç:</span>
+                      <span className="font-semibold">{formatCurrency(debtInfo.previousDebt)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold">
+                      <span>Toplam Borç:</span>
+                      <span>{formatCurrency(debtInfo.totalDebtAfter)}</span>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
 
+            {/* Notes */}
             {order.notes && (
-              <div className="border-t border-dashed border-gray-400 py-2 mt-2">
-                <p className="text-xs">Not: {order.notes}</p>
+              <div className="border-t border-dashed border-gray-400 py-3 mb-3">
+                <p className="font-semibold text-sm mb-1">Sipariş Notu:</p>
+                <p className="text-xs">{order.notes}</p>
               </div>
             )}
 
-            <div className="text-center mt-4 pt-2 border-t border-gray-400">
-              <p className="font-bold mb-2">Bilgi Fişidir</p>
-              <p className="font-bold">Teşekkür ederiz!</p>
-              <p className="text-xs">Yine bekleriz...</p>
+            {/* Customer Satisfaction Note */}
+            <div className="border-t-2 border-gray-800 pt-4 mt-4 text-center">
+              <p className="text-xs font-semibold mb-2 text-gray-700">
+                ✨ Memnuniyetiniz bizim için önemlidir ✨
+              </p>
+              <p className="text-xs text-gray-600 mb-3">
+                Görüş ve önerileriniz için bizimle iletişime geçebilirsiniz.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center mt-4 pt-3 border-t-2 border-gray-800">
+              <p className="font-bold text-sm mb-2 uppercase">Bilgi Fişidir</p>
+              <p className="font-bold text-lg mb-1">Teşekkür Ederiz!</p>
+              <p className="text-xs text-gray-600">Yine bekleriz...</p>
             </div>
           </div>
         </CardContent>
