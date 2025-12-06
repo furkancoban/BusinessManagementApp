@@ -41,6 +41,12 @@ async function fetchUnpaidOrders(params: Record<string, string>) {
   return res.json();
 }
 
+async function fetchCustomers() {
+  const res = await fetch("/api/customers?limit=1000");
+  if (!res.ok) throw new Error("Failed to fetch customers");
+  return res.json();
+}
+
 async function markOrderAsPaid(orderId: string, paymentType: string) {
   const res = await fetch(`/api/orders/${orderId}`, {
     method: "PUT",
@@ -62,6 +68,7 @@ async function markOrderAsPaid(orderId: string, paymentType: string) {
 export default function UnpaidOrdersPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [customerId, setCustomerId] = useState<string>("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showMarkPaidDialog, setShowMarkPaidDialog] = useState(false);
   const [paymentType, setPaymentType] = useState<string>("CASH");
@@ -70,6 +77,14 @@ export default function UnpaidOrdersPage() {
   const queryParams: Record<string, string> = {};
   if (startDate) queryParams.startDate = startDate;
   if (endDate) queryParams.endDate = endDate;
+  if (customerId) queryParams.customerId = customerId;
+
+  const { data: customersData } = useQuery({
+    queryKey: ["customers-filter"],
+    queryFn: fetchCustomers,
+  });
+
+  const customers = customersData?.customers || [];
 
   const { data, isLoading } = useQuery({
     queryKey: ["unpaid-orders", queryParams],
@@ -179,6 +194,22 @@ export default function UnpaidOrdersPage() {
         <CardContent>
           <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
             <div className="space-y-2 flex-1 min-w-0 sm:min-w-[200px]">
+              <Label className="text-sm">Müşteri</Label>
+              <Select value={customerId} onValueChange={setCustomerId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tüm müşteriler" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tüm müşteriler</SelectItem>
+                  {customers.map((customer: any) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 flex-1 min-w-0 sm:min-w-[200px]">
               <Label className="text-sm">Başlangıç Tarihi</Label>
               <DatePicker
                 value={startDate}
@@ -194,7 +225,7 @@ export default function UnpaidOrdersPage() {
                 placeholder="Bitiş tarihi seçin"
               />
             </div>
-            {(startDate || endDate) && (
+            {(startDate || endDate || customerId) && (
               <div className="flex items-end w-full sm:w-auto">
                 <Button
                   variant="outline"
@@ -202,6 +233,7 @@ export default function UnpaidOrdersPage() {
                   onClick={() => {
                     setStartDate("");
                     setEndDate("");
+                    setCustomerId("");
                   }}
                 >
                   Filtreleri Temizle

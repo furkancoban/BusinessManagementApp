@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { customerSchema } from "@/lib/validations";
+import bcrypt from "bcryptjs";
 
 export async function GET(
   request: NextRequest,
@@ -138,7 +139,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -151,18 +152,71 @@ export async function DELETE(
       return NextResponse.json({ error: "No business selected" }, { status: 400 });
     }
 
+    const resolvedParams = await Promise.resolve(params);
+    const customerId = resolvedParams.id;
+
     // Verify customer belongs to business
     const existing = await prisma.customer.findFirst({
-      where: { id: params.id, businessId: session.user.businessId },
+      where: { id: customerId, businessId: session.user.businessId },
     });
 
     if (!existing) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 });
     }
 
+    // Check for veresiye orders
+    const veresiyeOrders = await prisma.order.findMany({
+      where: {
+        customerId: customerId,
+        businessId: session.user.businessId,
+        paymentType: "VERESIYE",
+        status: "COMPLETED",
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        totalAmount: true,
+      },
+    });
+
+    if (veresiyeOrders.length > 0) {
+      const totalDebt = veresiyeOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+      return NextResponse.json(
+        {
+          error: "Bu müşteriyi silemezsiniz. Müşterinin ödenmemiş veresiye siparişleri bulunmaktadır.",
+          veresiyeOrdersCount: veresiyeOrders.length,
+          totalDebt: totalDebt,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Require password for deletion
+    const body = await request.json();
+    const { password } = body;
+
+    if (!password) {
+      return NextResponse.json({ error: "Şifre gereklidir. Güvenlik için şifrenizi girmeniz gerekmektedir." }, { status: 400 });
+    }
+
+    // Verify password
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { password: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json({ error: "Şifre yanlış" }, { status: 400 });
+    }
+
     // Soft delete
     await prisma.customer.update({
-      where: { id: params.id },
+      where: { id: customerId },
       data: { isActive: false },
     });
 
@@ -170,7 +224,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error("Delete customer error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: error.message || "Internal server error" },
       { status: 500 }
     );
   }

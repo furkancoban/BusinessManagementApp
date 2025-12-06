@@ -12,6 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, AlertTriangle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,15 +32,24 @@ async function fetchCustomers(search: string) {
   return res.json();
 }
 
-async function deleteCustomer(id: string) {
-  const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete customer");
+async function deleteCustomer(id: string, password: string) {
+  const res = await fetch(`/api/customers/${id}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to delete customer");
+  }
   return res.json();
 }
 
 export default function CustomersPage() {
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const queryClient = useQueryClient();
 
@@ -46,7 +59,8 @@ export default function CustomersPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteCustomer,
+    mutationFn: ({ id, password }: { id: string; password: string }) =>
+      deleteCustomer(id, password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast({
@@ -54,12 +68,15 @@ export default function CustomersPage() {
         description: "Müşteri silindi.",
       });
       setDeleteId(null);
+      setDeletePassword("");
+      setDeleteError(null);
     },
-    onError: () => {
+    onError: (error: Error) => {
+      setDeleteError(error.message);
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Müşteri silinirken bir hata oluştu.",
+        description: error.message || "Müşteri silinirken bir hata oluştu.",
       });
     },
   });
@@ -98,12 +115,12 @@ export default function CustomersPage() {
               Dışa Aktar
             </Button>
             <Button asChild size="default" className="w-full sm:w-auto">
-              <Link href="/customers/new">
+            <Link href="/customers/new">
                 <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="hidden sm:inline">Yeni Müşteri</span>
                 <span className="sm:hidden">Yeni</span>
-              </Link>
-            </Button>
+            </Link>
+          </Button>
           </div>
         }
       />
@@ -111,11 +128,11 @@ export default function CustomersPage() {
       {/* Search and View Toggle */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="max-w-md w-full">
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Müşteri ara (ad, telefon, e-posta)..."
-          />
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Müşteri ara (ad, telefon, e-posta)..."
+        />
         </div>
         <div className="flex gap-2 border rounded-lg p-1">
           <Button
@@ -358,17 +375,103 @@ export default function CustomersPage() {
         </Card>
       )}
 
-      {/* Delete Confirmation */}
-      <ConfirmDialog
-        open={!!deleteId}
-        onOpenChange={() => setDeleteId(null)}
-        title="Müşteriyi Sil"
-        description="Bu müşteriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
-        confirmLabel="Sil"
-        cancelLabel="İptal"
+      {/* Delete Confirmation Dialog with Password */}
+      <Dialog open={!!deleteId} onOpenChange={(open) => {
+        if (!open) {
+          setDeleteId(null);
+          setDeletePassword("");
+          setDeleteError(null);
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Müşteriyi Sil
+            </DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>
+                Bu müşteriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+              </p>
+              <p className="text-sm text-muted-foreground font-medium">
+                ⚠️ Bu müşterinin veresiye siparişleri varsa silme işlemi yapılamaz.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="deletePassword">Güvenlik için şifrenizi girin:</Label>
+              <Input
+                id="deletePassword"
+                type="password"
+                placeholder="••••••••"
+                value={deletePassword}
+                onChange={(e) => {
+                  setDeletePassword(e.target.value);
+                  setDeleteError(null);
+                }}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && deletePassword && deleteId && !deleteMutation.isPending) {
+                    deleteMutation.mutate({
+                      id: deleteId,
+                      password: deletePassword,
+                    });
+                  }
+                }}
+              />
+              {deleteError && (
+                <p className="text-sm text-destructive mt-2">{deleteError}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteId(null);
+                setDeletePassword("");
+                setDeleteError(null);
+              }}
+              disabled={deleteMutation.isPending}
+            >
+              İptal
+            </Button>
+            <Button
         variant="destructive"
-        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
-      />
+              onClick={() => {
+                if (!deletePassword) {
+                  toast({
+                    variant: "destructive",
+                    title: "Hata",
+                    description: "Lütfen şifrenizi girin.",
+                  });
+                  return;
+                }
+                if (deleteId) {
+                  deleteMutation.mutate({
+                    id: deleteId,
+                    password: deletePassword,
+                  });
+                }
+              }}
+              disabled={!deletePassword || !deleteId || deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Siliniyor...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Sil
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -23,7 +23,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
+import { Loader2, AlertTriangle } from "lucide-react";
 import {
   formatCurrency,
   formatDate,
@@ -39,9 +43,16 @@ async function fetchCustomer(id: string) {
   return res.json();
 }
 
-async function deleteCustomer(id: string) {
-  const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete customer");
+async function deleteCustomer(id: string, password: string) {
+  const res = await fetch(`/api/customers/${id}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to delete customer");
+  }
   return res.json();
 }
 
@@ -53,6 +64,8 @@ export default function CustomerDetailPage({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data: customer, isLoading } = useQuery({
     queryKey: ["customer", params.id],
@@ -60,20 +73,25 @@ export default function CustomerDetailPage({
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteCustomer,
+    mutationFn: ({ id, password }: { id: string; password: string }) =>
+      deleteCustomer(id, password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast({
         title: "Başarılı",
         description: "Müşteri silindi.",
       });
+      setShowDeleteDialog(false);
+      setDeletePassword("");
+      setDeleteError(null);
       router.push("/customers");
     },
-    onError: () => {
+    onError: (error: Error) => {
+      setDeleteError(error.message);
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Müşteri silinirken bir hata oluştu.",
+        description: error.message || "Müşteri silinirken bir hata oluştu.",
       });
     },
   });
@@ -256,17 +274,95 @@ export default function CustomerDetailPage({
         </Card>
       </div>
 
-      {/* Delete Confirmation */}
-      <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Müşteriyi Sil"
-        description="Bu müşteriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
-        confirmLabel="Sil"
-        cancelLabel="İptal"
-        variant="destructive"
-        onConfirm={() => deleteMutation.mutate(params.id)}
-      />
+      {/* Delete Confirmation Dialog with Password */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Müşteriyi Sil
+            </DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>
+                Bu müşteriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+              </p>
+              <p className="text-sm text-muted-foreground font-medium">
+                ⚠️ Bu müşterinin veresiye siparişleri varsa silme işlemi yapılamaz.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="deletePassword">Güvenlik için şifrenizi girin:</Label>
+              <Input
+                id="deletePassword"
+                type="password"
+                placeholder="••••••••"
+                value={deletePassword}
+                onChange={(e) => {
+                  setDeletePassword(e.target.value);
+                  setDeleteError(null);
+                }}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && deletePassword && !deleteMutation.isPending) {
+                    deleteMutation.mutate({
+                      id: params.id,
+                      password: deletePassword,
+                    });
+                  }
+                }}
+              />
+              {deleteError && (
+                <p className="text-sm text-destructive mt-2">{deleteError}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDeletePassword("");
+                setDeleteError(null);
+              }}
+              disabled={deleteMutation.isPending}
+            >
+              İptal
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (!deletePassword) {
+                  toast({
+                    variant: "destructive",
+                    title: "Hata",
+                    description: "Lütfen şifrenizi girin.",
+                  });
+                  return;
+                }
+                deleteMutation.mutate({
+                  id: params.id,
+                  password: deletePassword,
+                });
+              }}
+              disabled={!deletePassword || deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Siliniyor...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Sil
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

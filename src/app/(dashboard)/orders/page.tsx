@@ -45,6 +45,12 @@ async function fetchOrders(params: Record<string, string>) {
   return res.json();
 }
 
+async function fetchCustomers() {
+  const res = await fetch("/api/customers?limit=1000");
+  if (!res.ok) throw new Error("Failed to fetch customers");
+  return res.json();
+}
+
 async function deleteOrder(id: string) {
   const res = await fetch(`/api/orders/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete order");
@@ -53,6 +59,7 @@ async function deleteOrder(id: string) {
 
 export default function OrdersPage() {
   const [status, setStatus] = useState("all");
+  const [customerId, setCustomerId] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -60,8 +67,16 @@ export default function OrdersPage() {
 
   const queryParams: Record<string, string> = {};
   if (status && status !== "all") queryParams.status = status;
+  if (customerId) queryParams.customerId = customerId;
   if (startDate) queryParams.startDate = startDate;
   if (endDate) queryParams.endDate = endDate;
+
+  const { data: customersData } = useQuery({
+    queryKey: ["customers-filter"],
+    queryFn: fetchCustomers,
+  });
+
+  const customers = customersData?.customers || [];
 
   const { data, isLoading } = useQuery({
     queryKey: ["orders", queryParams],
@@ -155,6 +170,22 @@ export default function OrdersPage() {
               </Select>
             </div>
             <div className="space-y-2 flex-1 min-w-[200px]">
+              <Label>Müşteri</Label>
+              <Select value={customerId} onValueChange={setCustomerId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tüm müşteriler" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tüm müşteriler</SelectItem>
+                  {customers.map((customer: any) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 flex-1 min-w-[200px]">
               <Label>Başlangıç Tarihi</Label>
               <DatePicker
                 value={startDate}
@@ -170,12 +201,13 @@ export default function OrdersPage() {
                 placeholder="Bitiş tarihi seçin"
               />
             </div>
-            {(startDate || endDate || status !== "all") && (
+            {(startDate || endDate || status !== "all" || customerId) && (
               <div className="flex items-end">
                 <Button
                   variant="outline"
                   onClick={() => {
                     setStatus("all");
+                    setCustomerId("");
                     setStartDate("");
                     setEndDate("");
                   }}
