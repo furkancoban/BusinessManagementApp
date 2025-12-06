@@ -119,38 +119,53 @@ export async function GET(request: NextRequest) {
     // Convert Map to array
     const allProducts = Array.from(productStats.values());
     
-    // Create a copy and sort by totalQuantity in DESCENDING order
-    // Sort function: return negative if b should come before a (b > a means b comes first)
-    const sortedProducts = [...allProducts].sort((a, b) => {
-      // Convert to numbers explicitly
-      const qtyA = typeof a.totalQuantity === 'number' ? a.totalQuantity : Number(a.totalQuantity) || 0;
-      const qtyB = typeof b.totalQuantity === 'number' ? b.totalQuantity : Number(b.totalQuantity) || 0;
+    // Debug: Log before sorting
+    console.log('[REPORTS API] BEFORE SORT:', allProducts.map(p => ({ name: p.productName, qty: p.totalQuantity, rev: p.totalRevenue })));
+    
+    // Sort by totalQuantity in DESCENDING order (highest quantity first)
+    // Use explicit comparison to ensure correct sorting
+    const sortedProducts = allProducts.sort((a, b) => {
+      const qtyA = Number(a.totalQuantity) || 0;
+      const qtyB = Number(b.totalQuantity) || 0;
       
-      // Sort by quantity descending: if b's quantity > a's quantity, b comes first (return negative)
-      // This means highest quantity will be first
-      if (qtyB !== qtyA) {
-        return qtyB - qtyA; // Descending order
+      // Primary: Sort by quantity (descending - highest first)
+      const qtyComparison = qtyB - qtyA;
+      if (qtyComparison !== 0) {
+        return qtyComparison;
       }
       
-      // If quantities are equal, sort by revenue descending
-      const revA = typeof a.totalRevenue === 'number' ? a.totalRevenue : Number(a.totalRevenue) || 0;
-      const revB = typeof b.totalRevenue === 'number' ? b.totalRevenue : Number(b.totalRevenue) || 0;
-      return revB - revA; // Descending order
+      // Secondary: If quantities are equal, sort by revenue (descending)
+      const revA = Number(a.totalRevenue) || 0;
+      const revB = Number(b.totalRevenue) || 0;
+      return revB - revA;
     });
 
-    // Debug logs
-    console.log('[REPORTS API] Before sort:', JSON.stringify(allProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
-    console.log('[REPORTS API] After sort:', JSON.stringify(sortedProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
+    // Debug: Log after sorting
+    console.log('[REPORTS API] AFTER SORT:', sortedProducts.map(p => ({ name: p.productName, qty: p.totalQuantity, rev: p.totalRevenue })));
 
-    // Take top 5 and add stock quantity
-    const topProducts = sortedProducts
-      .slice(0, 5)
-      .map((product) => ({
-        ...product,
-        stockQuantity: productStockMap.get(product.productId) || 0,
-      }));
+    // Take top 5, add stock quantity, and create final array
+    // IMPORTANT: Create new array to preserve sort order
+    const topProducts: Array<{
+      productId: string;
+      productName: string;
+      totalQuantity: number;
+      totalRevenue: number;
+      stockQuantity: number;
+    }> = [];
     
-    console.log('[REPORTS API] Final topProducts:', JSON.stringify(topProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
+    for (let i = 0; i < Math.min(5, sortedProducts.length); i++) {
+      const product = sortedProducts[i];
+      topProducts.push({
+        productId: product.productId,
+        productName: product.productName,
+        totalQuantity: product.totalQuantity,
+        totalRevenue: product.totalRevenue,
+        stockQuantity: productStockMap.get(product.productId) || 0,
+      });
+    }
+    
+    // Debug: Log final result
+    console.log('[REPORTS API] FINAL RESULT:', topProducts.map(p => ({ name: p.productName, qty: p.totalQuantity })));
 
     // Top customers
     const customerStats = new Map<
