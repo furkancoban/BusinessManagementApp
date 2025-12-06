@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     const orderCount = orders.length;
     const averageOrderValue = orderCount > 0 ? totalSales / orderCount : 0;
 
-    // Top products
+    // Top products - collect all product sales
     const productStats = new Map<
       string,
       { productId: string; productName: string; totalQuantity: number; totalRevenue: number }
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    // Get product details including stock for top products
+    // Get stock quantities for all products
     const topProductIds = Array.from(productStats.keys());
     const topProductDetails = await prisma.product.findMany({
       where: {
@@ -116,59 +116,22 @@ export async function GET(request: NextRequest) {
       topProductDetails.map((p) => [p.id, p.stockQuantity])
     );
 
-    // Convert Map to array
-    const allProducts = Array.from(productStats.values());
+    // Convert to array and SORT BY QUANTITY DESCENDING
+    const allProductsArray = Array.from(productStats.values());
     
-    // MANUAL SORTING: Sort by totalQuantity DESCENDING using bubble sort-like approach
-    // This ensures we have complete control over the sorting
-    const sortedProducts: Array<{
-      productId: string;
-      productName: string;
-      totalQuantity: number;
-      totalRevenue: number;
-    }> = [];
-    
-    // Create a copy of products with numeric values
-    const productsWithNums = allProducts.map(p => ({
-      ...p,
-      _qty: Number(p.totalQuantity) || 0,
-      _rev: Number(p.totalRevenue) || 0,
-    }));
-    
-    // Manual descending sort by quantity (simple but guaranteed to work)
-    while (productsWithNums.length > 0) {
-      // Find the product with the highest quantity
-      let maxIndex = 0;
-      let maxQty = productsWithNums[0]._qty;
-      
-      for (let i = 1; i < productsWithNums.length; i++) {
-        if (productsWithNums[i]._qty > maxQty) {
-          maxQty = productsWithNums[i]._qty;
-          maxIndex = i;
-        } else if (productsWithNums[i]._qty === maxQty) {
-          // If quantities are equal, use revenue as tiebreaker
-          if (productsWithNums[i]._rev > productsWithNums[maxIndex]._rev) {
-            maxIndex = i;
-          }
-        }
-      }
-      
-      // Add to sorted array and remove from original
-      const { _qty, _rev, ...product } = productsWithNums[maxIndex];
-      sortedProducts.push(product);
-      productsWithNums.splice(maxIndex, 1);
-    }
+    // Simple sort: highest quantity first
+    allProductsArray.sort((a, b) => {
+      return (Number(b.totalQuantity) || 0) - (Number(a.totalQuantity) || 0);
+    });
 
-    // Take top 5 and add stock quantity
-    const topProducts = sortedProducts
-      .slice(0, 5)
-      .map((product) => ({
-        productId: product.productId,
-        productName: product.productName,
-        totalQuantity: product.totalQuantity,
-        totalRevenue: product.totalRevenue,
-        stockQuantity: productStockMap.get(product.productId) || 0,
-      }));
+    // Take top 5
+    const topProducts = allProductsArray.slice(0, 5).map((product) => ({
+      productId: product.productId,
+      productName: product.productName,
+      totalQuantity: product.totalQuantity,
+      totalRevenue: product.totalRevenue,
+      stockQuantity: productStockMap.get(product.productId) || 0,
+    }));
 
     // Top customers
     const customerStats = new Map<
