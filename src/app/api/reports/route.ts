@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     );
 
     const topProducts = Array.from(productStats.values())
-      .sort((a, b) => b.totalRevenue - a.totalRevenue)
+      .sort((a, b) => b.totalQuantity - a.totalQuantity)
       .slice(0, 5)
       .map((product) => ({
         ...product,
