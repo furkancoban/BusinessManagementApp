@@ -27,8 +27,6 @@ import {
   Calendar,
   Heart,
   Target,
-  Zap,
-  TrendingDown,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/shared/stat-card";
