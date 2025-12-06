@@ -63,16 +63,19 @@ export async function GET(request: NextRequest) {
 
     // Calculate totals
     const totalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-    const totalProfit = orders.reduce(
-      (sum, order) =>
-        sum +
-        order.items.reduce(
-          (itemSum, item) =>
-            itemSum + (item.unitPrice - item.purchasePrice) * item.quantity,
-          0
-        ),
-      0
-    );
+    // Exclude VERESIYE (unpaid) orders from profit calculation
+    const totalProfit = orders
+      .filter((order) => order.paymentType !== "VERESIYE")
+      .reduce(
+        (sum, order) =>
+          sum +
+          order.items.reduce(
+            (itemSum, item) =>
+              itemSum + (item.unitPrice - item.purchasePrice) * item.quantity,
+            0
+          ),
+        0
+      );
     const orderCount = orders.length;
     const averageOrderValue = orderCount > 0 ? totalSales / orderCount : 0;
 

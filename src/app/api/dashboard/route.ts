@@ -284,11 +284,15 @@ export async function GET() {
     });
 
     // Calculate profit (revenue - cost)
+    // Exclude VERESIYE (unpaid) orders from profit calculation
     const monthlyOrderItems = await prisma.orderItem.findMany({
       where: {
         order: {
           businessId,
           status: "COMPLETED",
+          paymentType: {
+            not: "VERESIYE", // Exclude unpaid veresiye orders
+          },
           orderDate: {
             gte: firstDayOfMonth,
             lt: firstDayOfNextMonth,
