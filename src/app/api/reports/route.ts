@@ -122,21 +122,28 @@ export async function GET(request: NextRequest) {
     // Debug: Log before sorting
     console.log('[REPORTS API] BEFORE SORT:', JSON.stringify(allProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
     
-    // Create a NEW array and sort by totalQuantity in DESCENDING order
-    // CRITICAL: Use spread operator to create a new array, don't mutate the original
-    const sortedProducts = [...allProducts].sort((a, b) => {
-      const qtyA = Number(a.totalQuantity) || 0;
-      const qtyB = Number(b.totalQuantity) || 0;
-      
-      // Sort descending: higher quantity comes first
-      // Return negative if b should come before a (b > a means b comes first)
-      return qtyB - qtyA;
-    });
+    // Sort by totalQuantity DESCENDING (highest first)
+    // Create explicit sorted array with proper number conversion
+    const sortedProducts = allProducts
+      .map(p => ({
+        ...p,
+        _qty: Number(p.totalQuantity) || 0,
+        _rev: Number(p.totalRevenue) || 0,
+      }))
+      .sort((a, b) => {
+        // Primary: quantity descending
+        if (b._qty !== a._qty) {
+          return b._qty - a._qty;
+        }
+        // Secondary: revenue descending if quantities equal
+        return b._rev - a._rev;
+      })
+      .map(({ _qty, _rev, ...p }) => p); // Remove temporary fields
 
     // Debug: Log after sorting
     console.log('[REPORTS API] AFTER SORT:', JSON.stringify(sortedProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
 
-    // Take top 5, add stock quantity, and create final array
+    // Take top 5 and add stock quantity
     const topProducts = sortedProducts
       .slice(0, 5)
       .map((product) => ({
@@ -149,6 +156,18 @@ export async function GET(request: NextRequest) {
     
     // Debug: Log final result
     console.log('[REPORTS API] FINAL RESULT:', JSON.stringify(topProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
+    
+    // CRITICAL: Verify sort is correct before returning
+    const isCorrectlySorted = topProducts.every((product, index) => {
+      if (index === 0) return true;
+      const prevQty = Number(topProducts[index - 1].totalQuantity) || 0;
+      const currQty = Number(product.totalQuantity) || 0;
+      return prevQty >= currQty;
+    });
+    console.log('[REPORTS API] SORT VERIFICATION:', isCorrectlySorted ? 'CORRECT' : 'WRONG!');
+    if (!isCorrectlySorted) {
+      console.error('[REPORTS API] SORTING FAILED! Products are not sorted correctly!');
+    }
 
     // Top customers
     const customerStats = new Map<
