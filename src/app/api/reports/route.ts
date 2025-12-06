@@ -119,29 +119,45 @@ export async function GET(request: NextRequest) {
     // Convert Map to array
     const allProducts = Array.from(productStats.values());
     
-    // Debug: Log before sorting
-    console.log('[REPORTS API] BEFORE SORT:', JSON.stringify(allProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
+    // MANUAL SORTING: Sort by totalQuantity DESCENDING using bubble sort-like approach
+    // This ensures we have complete control over the sorting
+    const sortedProducts: Array<{
+      productId: string;
+      productName: string;
+      totalQuantity: number;
+      totalRevenue: number;
+    }> = [];
     
-    // Sort by totalQuantity DESCENDING (highest first)
-    // Create explicit sorted array with proper number conversion
-    const sortedProducts = allProducts
-      .map(p => ({
-        ...p,
-        _qty: Number(p.totalQuantity) || 0,
-        _rev: Number(p.totalRevenue) || 0,
-      }))
-      .sort((a, b) => {
-        // Primary: quantity descending
-        if (b._qty !== a._qty) {
-          return b._qty - a._qty;
+    // Create a copy of products with numeric values
+    const productsWithNums = allProducts.map(p => ({
+      ...p,
+      _qty: Number(p.totalQuantity) || 0,
+      _rev: Number(p.totalRevenue) || 0,
+    }));
+    
+    // Manual descending sort by quantity (simple but guaranteed to work)
+    while (productsWithNums.length > 0) {
+      // Find the product with the highest quantity
+      let maxIndex = 0;
+      let maxQty = productsWithNums[0]._qty;
+      
+      for (let i = 1; i < productsWithNums.length; i++) {
+        if (productsWithNums[i]._qty > maxQty) {
+          maxQty = productsWithNums[i]._qty;
+          maxIndex = i;
+        } else if (productsWithNums[i]._qty === maxQty) {
+          // If quantities are equal, use revenue as tiebreaker
+          if (productsWithNums[i]._rev > productsWithNums[maxIndex]._rev) {
+            maxIndex = i;
+          }
         }
-        // Secondary: revenue descending if quantities equal
-        return b._rev - a._rev;
-      })
-      .map(({ _qty, _rev, ...p }) => p); // Remove temporary fields
-
-    // Debug: Log after sorting
-    console.log('[REPORTS API] AFTER SORT:', JSON.stringify(sortedProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
+      }
+      
+      // Add to sorted array and remove from original
+      const { _qty, _rev, ...product } = productsWithNums[maxIndex];
+      sortedProducts.push(product);
+      productsWithNums.splice(maxIndex, 1);
+    }
 
     // Take top 5 and add stock quantity
     const topProducts = sortedProducts
@@ -153,21 +169,6 @@ export async function GET(request: NextRequest) {
         totalRevenue: product.totalRevenue,
         stockQuantity: productStockMap.get(product.productId) || 0,
       }));
-    
-    // Debug: Log final result
-    console.log('[REPORTS API] FINAL RESULT:', JSON.stringify(topProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
-    
-    // CRITICAL: Verify sort is correct before returning
-    const isCorrectlySorted = topProducts.every((product, index) => {
-      if (index === 0) return true;
-      const prevQty = Number(topProducts[index - 1].totalQuantity) || 0;
-      const currQty = Number(product.totalQuantity) || 0;
-      return prevQty >= currQty;
-    });
-    console.log('[REPORTS API] SORT VERIFICATION:', isCorrectlySorted ? 'CORRECT' : 'WRONG!');
-    if (!isCorrectlySorted) {
-      console.error('[REPORTS API] SORTING FAILED! Products are not sorted correctly!');
-    }
 
     // Top customers
     const customerStats = new Map<
