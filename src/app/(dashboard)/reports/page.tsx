@@ -369,10 +369,13 @@ export default function ReportsPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                En Çok Satan Ürünler
-              </CardTitle>
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  En Çok Satan Ürünler
+                </CardTitle>
+                <CardDescription className="mt-1">Miktara göre sıralı</CardDescription>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -404,9 +407,9 @@ export default function ReportsPage() {
                       <div>
                         <p className="font-medium">{product.productName}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <p className="text-sm text-muted-foreground">
+                          <Badge variant="secondary" className="font-semibold">
                             {product.totalQuantity} adet satıldı
-                          </p>
+                          </Badge>
                           <span className="text-muted-foreground">•</span>
                           <p className={`text-sm font-medium ${
                             product.stockQuantity === 0
@@ -421,6 +424,7 @@ export default function ReportsPage() {
                       </div>
                     </div>
                     <div className="text-right">
+                      <p className="text-xs text-muted-foreground mb-1">Toplam Gelir</p>
                       <p className="font-semibold">
                         {formatCurrency(product.totalRevenue)}
                       </p>
