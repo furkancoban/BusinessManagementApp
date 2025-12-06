@@ -7,8 +7,6 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Loading } from "@/components/shared/loading";
-import { PageTransition } from "@/components/shared/page-transition";
-import { RouteProgress } from "@/components/shared/route-progress";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +35,6 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <RouteProgress />
       {/* Sidebar - Desktop */}
       <Sidebar />
 
@@ -49,9 +46,7 @@ export default function DashboardLayout({
         <Header />
 
         <main className="py-8 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-8">
-          <div className="mx-auto max-w-7xl">
-            <PageTransition>{children}</PageTransition>
-          </div>
+          <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>
 
