@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -114,18 +116,23 @@ export async function GET(request: NextRequest) {
       topProductDetails.map((p) => [p.id, p.stockQuantity])
     );
 
-    // Convert Map to array and sort by totalQuantity (descending - highest first)
-    const topProductsArray = Array.from(productStats.values());
-    topProductsArray.sort((a, b) => {
-      // Sort by totalQuantity descending (highest quantity first)
-      if (b.totalQuantity !== a.totalQuantity) {
-        return b.totalQuantity - a.totalQuantity;
+    // Convert Map to array
+    const allProducts = Array.from(productStats.values());
+    
+    // Sort by totalQuantity in DESCENDING order (highest quantity first)
+    // This ensures Karpuz (96) comes before Elma (81), etc.
+    const sortedProducts = allProducts.sort((a, b) => {
+      const quantityDiff = Number(b.totalQuantity) - Number(a.totalQuantity);
+      // If quantities are different, sort by quantity (descending)
+      if (quantityDiff !== 0) {
+        return quantityDiff;
       }
-      // If quantities are equal, sort by totalRevenue descending
-      return b.totalRevenue - a.totalRevenue;
+      // If quantities are equal, sort by revenue (descending) as tiebreaker
+      return Number(b.totalRevenue) - Number(a.totalRevenue);
     });
 
-    const topProducts = topProductsArray
+    // Take top 5 and add stock quantity
+    const topProducts = sortedProducts
       .slice(0, 5)
       .map((product) => ({
         ...product,
