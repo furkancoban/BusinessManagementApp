@@ -120,52 +120,35 @@ export async function GET(request: NextRequest) {
     const allProducts = Array.from(productStats.values());
     
     // Debug: Log before sorting
-    console.log('[REPORTS API] BEFORE SORT:', allProducts.map(p => ({ name: p.productName, qty: p.totalQuantity, rev: p.totalRevenue })));
+    console.log('[REPORTS API] BEFORE SORT:', JSON.stringify(allProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
     
-    // Sort by totalQuantity in DESCENDING order (highest quantity first)
-    // Use explicit comparison to ensure correct sorting
-    const sortedProducts = allProducts.sort((a, b) => {
+    // Create a NEW array and sort by totalQuantity in DESCENDING order
+    // CRITICAL: Use spread operator to create a new array, don't mutate the original
+    const sortedProducts = [...allProducts].sort((a, b) => {
       const qtyA = Number(a.totalQuantity) || 0;
       const qtyB = Number(b.totalQuantity) || 0;
       
-      // Primary: Sort by quantity (descending - highest first)
-      const qtyComparison = qtyB - qtyA;
-      if (qtyComparison !== 0) {
-        return qtyComparison;
-      }
-      
-      // Secondary: If quantities are equal, sort by revenue (descending)
-      const revA = Number(a.totalRevenue) || 0;
-      const revB = Number(b.totalRevenue) || 0;
-      return revB - revA;
+      // Sort descending: higher quantity comes first
+      // Return negative if b should come before a (b > a means b comes first)
+      return qtyB - qtyA;
     });
 
     // Debug: Log after sorting
-    console.log('[REPORTS API] AFTER SORT:', sortedProducts.map(p => ({ name: p.productName, qty: p.totalQuantity, rev: p.totalRevenue })));
+    console.log('[REPORTS API] AFTER SORT:', JSON.stringify(sortedProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
 
     // Take top 5, add stock quantity, and create final array
-    // IMPORTANT: Create new array to preserve sort order
-    const topProducts: Array<{
-      productId: string;
-      productName: string;
-      totalQuantity: number;
-      totalRevenue: number;
-      stockQuantity: number;
-    }> = [];
-    
-    for (let i = 0; i < Math.min(5, sortedProducts.length); i++) {
-      const product = sortedProducts[i];
-      topProducts.push({
+    const topProducts = sortedProducts
+      .slice(0, 5)
+      .map((product) => ({
         productId: product.productId,
         productName: product.productName,
         totalQuantity: product.totalQuantity,
         totalRevenue: product.totalRevenue,
         stockQuantity: productStockMap.get(product.productId) || 0,
-      });
-    }
+      }));
     
     // Debug: Log final result
-    console.log('[REPORTS API] FINAL RESULT:', topProducts.map(p => ({ name: p.productName, qty: p.totalQuantity })));
+    console.log('[REPORTS API] FINAL RESULT:', JSON.stringify(topProducts.map(p => ({ name: p.productName, qty: p.totalQuantity }))));
 
     // Top customers
     const customerStats = new Map<
