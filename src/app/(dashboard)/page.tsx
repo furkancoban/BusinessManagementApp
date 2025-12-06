@@ -24,6 +24,11 @@ import {
   List,
   FileText,
   Store,
+  Calendar,
+  Heart,
+  Target,
+  Zap,
+  TrendingDown,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/shared/stat-card";
@@ -597,6 +602,280 @@ export default function DashboardPage() {
                 <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* New Feature Cards: Today's Summary, Weekly Performance, Business Health */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Bugünün Özeti */}
+        <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg hover:shadow-xl transition-all">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-md">
+                <Calendar className="h-5 w-5" />
+              </div>
+              Bugünün Özeti
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base">Bugünkü işlerin detaylı özeti</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-green-100 text-green-700">
+                      <ShoppingCart className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Bugünkü Siparişler</p>
+                      <p className="font-bold text-base sm:text-lg">{stats?.todayOrderCount || 0}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Gelir</p>
+                    <p className="font-bold text-base sm:text-lg text-green-700">
+                      {formatCurrency(stats?.todaySales || 0)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Yeni Müşteriler</p>
+                      <p className="font-bold text-base sm:text-lg">
+                        {stats?.recentCustomers?.filter((c: any) => {
+                          const customerDate = new Date(c.createdAt);
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          return customerDate >= today;
+                        }).length || 0}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Toplam</p>
+                    <p className="font-bold text-base sm:text-lg text-blue-700">
+                      {stats?.customerCount || 0}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-purple-100 text-purple-700">
+                      <Target className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Ortalama Sipariş</p>
+                      <p className="font-bold text-base sm:text-lg">
+                        {formatCurrency(stats?.avgOrderValue || 0)}
+                      </p>
+                    </div>
+                  </div>
+                  {stats?.todayOrderCount > 0 && (
+                    <Badge variant="default" className="bg-green-600">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      Aktif
+                    </Badge>
+                  )}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Haftalık Performans */}
+        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg hover:shadow-xl transition-all">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md">
+                <BarChart3 className="h-5 w-5" />
+              </div>
+              Haftalık Performans
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base">Son 7 günün performans analizi</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
+                      <DollarSign className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Haftalık Toplam</p>
+                      <p className="font-bold text-base sm:text-lg text-blue-700">
+                        {formatCurrency(
+                          stats?.salesChartData?.reduce((sum: number, day: any) => sum + (day.sales || 0), 0) || 0
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
+                      <TrendingUp className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">En Yüksek Gün</p>
+                      <p className="font-bold text-base sm:text-lg text-emerald-700">
+                        {formatCurrency(
+                          stats?.salesChartData?.length > 0
+                            ? Math.max(...stats.salesChartData.map((d: any) => d.sales || 0))
+                            : 0
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/60 border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-orange-100 text-orange-700">
+                      <Activity className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Ortalama Günlük</p>
+                      <p className="font-bold text-base sm:text-lg text-orange-700">
+                        {formatCurrency(
+                          stats?.salesChartData?.length > 0
+                            ? stats.salesChartData.reduce((sum: number, day: any) => sum + (day.sales || 0), 0) /
+                              stats.salesChartData.length
+                            : 0
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* İşletme Sağlığı Skoru */}
+        <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg hover:shadow-xl transition-all">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-md">
+                <Heart className="h-5 w-5" />
+              </div>
+              İşletme Sağlığı
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base">Genel durum ve performans skoru</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Health Score */}
+                <div className="relative">
+                  <div className="flex items-center justify-center p-6 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 border-4 border-purple-300 mx-auto w-32 h-32 sm:w-40 sm:h-40">
+                    <div className="text-center">
+                      {(() => {
+                        let score = 100;
+                        // Deduct points for low stock
+                        const lowStockCount = stats?.lowStockProducts?.length || 0;
+                        score -= Math.min(lowStockCount * 5, 30);
+                        // Deduct points for unpaid veresiye
+                        const unpaidAmount = stats?.unpaidAmount || 0;
+                        const monthlySales = stats?.monthlySales || 1;
+                        if (unpaidAmount > monthlySales * 0.3) score -= 20;
+                        else if (unpaidAmount > monthlySales * 0.15) score -= 10;
+                        // Bonus for growth
+                        if (monthlyGrowth > 0) score += Math.min(monthlyGrowth, 10);
+                        score = Math.max(0, Math.min(100, score));
+                        return (
+                          <>
+                            <p className="text-3xl sm:text-4xl font-bold text-purple-700">{Math.round(score)}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">Puan</p>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                  <div className="absolute -top-2 -right-2">
+                    <Badge
+                      variant={(() => {
+                        let score = 100;
+                        const lowStockCount = stats?.lowStockProducts?.length || 0;
+                        score -= Math.min(lowStockCount * 5, 30);
+                        const unpaidAmount = stats?.unpaidAmount || 0;
+                        const monthlySales = stats?.monthlySales || 1;
+                        if (unpaidAmount > monthlySales * 0.3) score -= 20;
+                        else if (unpaidAmount > monthlySales * 0.15) score -= 10;
+                        if (monthlyGrowth > 0) score += Math.min(monthlyGrowth, 10);
+                        score = Math.max(0, Math.min(100, score));
+                        return score >= 80 ? "default" : score >= 60 ? "secondary" : "destructive";
+                      })()}
+                      className="text-xs sm:text-sm"
+                    >
+                      {(() => {
+                        let score = 100;
+                        const lowStockCount = stats?.lowStockProducts?.length || 0;
+                        score -= Math.min(lowStockCount * 5, 30);
+                        const unpaidAmount = stats?.unpaidAmount || 0;
+                        const monthlySales = stats?.monthlySales || 1;
+                        if (unpaidAmount > monthlySales * 0.3) score -= 20;
+                        else if (unpaidAmount > monthlySales * 0.15) score -= 10;
+                        if (monthlyGrowth > 0) score += Math.min(monthlyGrowth, 10);
+                        score = Math.max(0, Math.min(100, score));
+                        return score >= 80 ? "Mükemmel" : score >= 60 ? "İyi" : "Geliştirilebilir";
+                      })()}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Health Metrics */}
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Aylık Büyüme</span>
+                    <div className="flex items-center gap-1">
+                      {monthlyGrowth >= 0 ? (
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                      )}
+                      <span className={`font-semibold ${monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        {Math.abs(monthlyGrowth).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Düşük Stok</span>
+                    <span className={`font-semibold ${(stats?.lowStockProducts?.length || 0) > 0 ? "text-orange-600" : "text-green-600"}`}>
+                      {stats?.lowStockProducts?.length || 0} ürün
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Ödenmemiş Borç</span>
+                    <span className={`font-semibold ${(stats?.unpaidAmount || 0) > (stats?.monthlySales || 1) * 0.15 ? "text-red-600" : "text-green-600"}`}>
+                      {formatCurrency(stats?.unpaidAmount || 0)}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
