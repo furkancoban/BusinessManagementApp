@@ -116,27 +116,33 @@ export async function GET(request: NextRequest) {
       topProductDetails.map((p) => [p.id, p.stockQuantity])
     );
 
-    // Convert Map to array and sort by totalQuantity in DESCENDING order
-    // Create a new sorted array to avoid mutation issues
+    // Convert Map to array
     const allProducts = Array.from(productStats.values());
     
-    // Sort by totalQuantity descending (highest first), then by revenue if equal
-    const sortedProducts = [...allProducts].sort((a, b) => {
-      const qtyA = Number(a.totalQuantity) || 0;
-      const qtyB = Number(b.totalQuantity) || 0;
+    // Debug: Log before sorting
+    console.log('Before sorting:', allProducts.map(p => ({ name: p.productName, qty: p.totalQuantity })));
+    
+    // Sort by totalQuantity in DESCENDING order (highest quantity first)
+    const sortedProducts = allProducts.sort((a, b) => {
+      const qtyA = parseInt(String(a.totalQuantity)) || 0;
+      const qtyB = parseInt(String(b.totalQuantity)) || 0;
       
-      // Primary sort: by quantity (descending)
-      if (qtyB !== qtyA) {
-        return qtyB - qtyA;
-      }
+      // Primary sort: by quantity descending (highest first)
+      if (qtyB > qtyA) return 1;
+      if (qtyB < qtyA) return -1;
       
-      // Secondary sort: by revenue (descending) if quantities are equal
-      const revA = Number(a.totalRevenue) || 0;
-      const revB = Number(b.totalRevenue) || 0;
-      return revB - revA;
+      // Secondary sort: by revenue descending if quantities are equal
+      const revA = parseFloat(String(a.totalRevenue)) || 0;
+      const revB = parseFloat(String(b.totalRevenue)) || 0;
+      if (revB > revA) return 1;
+      if (revB < revA) return -1;
+      return 0;
     });
 
-    // Take top 5 and add stock quantity - maintain the sorted order
+    // Debug: Log after sorting
+    console.log('After sorting:', sortedProducts.map(p => ({ name: p.productName, qty: p.totalQuantity })));
+
+    // Take top 5 and add stock quantity
     const topProducts = sortedProducts
       .slice(0, 5)
       .map((product) => ({
@@ -144,8 +150,8 @@ export async function GET(request: NextRequest) {
         stockQuantity: productStockMap.get(product.productId) || 0,
       }));
     
-    // Log for debugging (remove in production if needed)
-    // console.log('Sorted topProducts:', topProducts.map(p => ({ name: p.productName, qty: p.totalQuantity })));
+    // Debug: Log final result
+    console.log('Final topProducts:', topProducts.map(p => ({ name: p.productName, qty: p.totalQuantity })));
 
     // Top customers
     const customerStats = new Map<
