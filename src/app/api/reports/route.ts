@@ -116,28 +116,36 @@ export async function GET(request: NextRequest) {
       topProductDetails.map((p) => [p.id, p.stockQuantity])
     );
 
-    // Convert Map to array
+    // Convert Map to array and sort by totalQuantity in DESCENDING order
+    // Create a new sorted array to avoid mutation issues
     const allProducts = Array.from(productStats.values());
     
-    // Sort by totalQuantity in DESCENDING order (highest quantity first)
-    // This ensures Karpuz (96) comes before Elma (81), etc.
-    const sortedProducts = allProducts.sort((a, b) => {
-      const quantityDiff = Number(b.totalQuantity) - Number(a.totalQuantity);
-      // If quantities are different, sort by quantity (descending)
-      if (quantityDiff !== 0) {
-        return quantityDiff;
+    // Sort by totalQuantity descending (highest first), then by revenue if equal
+    const sortedProducts = [...allProducts].sort((a, b) => {
+      const qtyA = Number(a.totalQuantity) || 0;
+      const qtyB = Number(b.totalQuantity) || 0;
+      
+      // Primary sort: by quantity (descending)
+      if (qtyB !== qtyA) {
+        return qtyB - qtyA;
       }
-      // If quantities are equal, sort by revenue (descending) as tiebreaker
-      return Number(b.totalRevenue) - Number(a.totalRevenue);
+      
+      // Secondary sort: by revenue (descending) if quantities are equal
+      const revA = Number(a.totalRevenue) || 0;
+      const revB = Number(b.totalRevenue) || 0;
+      return revB - revA;
     });
 
-    // Take top 5 and add stock quantity
+    // Take top 5 and add stock quantity - maintain the sorted order
     const topProducts = sortedProducts
       .slice(0, 5)
       .map((product) => ({
         ...product,
         stockQuantity: productStockMap.get(product.productId) || 0,
       }));
+    
+    // Log for debugging (remove in production if needed)
+    // console.log('Sorted topProducts:', topProducts.map(p => ({ name: p.productName, qty: p.totalQuantity })));
 
     // Top customers
     const customerStats = new Map<
