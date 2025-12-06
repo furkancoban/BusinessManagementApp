@@ -267,16 +267,8 @@ export default function OrderDetailPage({
               {businessInfo?.address && (
                 <p className="text-xs font-medium">{businessInfo.address}</p>
               )}
-              <div className="flex justify-center items-center gap-3 mt-1 text-xs">
-                {businessInfo?.phone && (
-                  <span className="font-medium">Tel: {businessInfo.phone}</span>
-                )}
-                {businessInfo?.email && (
-                  <span className="font-medium">E-posta: {businessInfo.email}</span>
-                )}
-              </div>
-              {businessInfo?.taxNumber && (
-                <p className="text-xs font-medium mt-1">Vergi No: {businessInfo.taxNumber}</p>
+              {businessInfo?.phone && (
+                <p className="text-xs font-medium mt-1">Tel: {businessInfo.phone}</p>
               )}
             </div>
 
@@ -290,12 +282,6 @@ export default function OrderDetailPage({
                 <span className="font-semibold">Tarih:</span>
                 <span>{formatDateTime(order.orderDate)}</span>
               </div>
-              {order.createdBy?.name && (
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">Personel:</span>
-                  <span>{order.createdBy.name}</span>
-                </div>
-              )}
             </div>
 
             {/* Customer Info - Enhanced */}
@@ -305,9 +291,6 @@ export default function OrderDetailPage({
                 <p className="font-semibold">Adı: {order.customer.name}</p>
                 {order.customer.phone && (
                   <p>Telefon: {order.customer.phone}</p>
-                )}
-                {order.customer.email && (
-                  <p>E-posta: {order.customer.email}</p>
                 )}
                 {order.customer.address && (
                   <p className="text-xs">Adres: {order.customer.address}</p>
