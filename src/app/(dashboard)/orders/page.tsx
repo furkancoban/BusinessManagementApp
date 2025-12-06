@@ -59,7 +59,7 @@ async function deleteOrder(id: string) {
 
 export default function OrdersPage() {
   const [status, setStatus] = useState("all");
-  const [customerId, setCustomerId] = useState("");
+  const [customerId, setCustomerId] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -67,7 +67,7 @@ export default function OrdersPage() {
 
   const queryParams: Record<string, string> = {};
   if (status && status !== "all") queryParams.status = status;
-  if (customerId) queryParams.customerId = customerId;
+  if (customerId && customerId !== "all") queryParams.customerId = customerId;
   if (startDate) queryParams.startDate = startDate;
   if (endDate) queryParams.endDate = endDate;
 
@@ -176,7 +176,7 @@ export default function OrdersPage() {
                   <SelectValue placeholder="Tüm müşteriler" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tüm müşteriler</SelectItem>
+                  <SelectItem value="all">Tüm müşteriler</SelectItem>
                   {customers.map((customer: any) => (
                     <SelectItem key={customer.id} value={customer.id}>
                       {customer.name}
@@ -201,13 +201,13 @@ export default function OrdersPage() {
                 placeholder="Bitiş tarihi seçin"
               />
             </div>
-            {(startDate || endDate || status !== "all" || customerId) && (
+            {(startDate || endDate || status !== "all" || (customerId && customerId !== "all")) && (
               <div className="flex items-end">
                 <Button
                   variant="outline"
                   onClick={() => {
                     setStatus("all");
-                    setCustomerId("");
+                    setCustomerId("all");
                     setStartDate("");
                     setEndDate("");
                   }}

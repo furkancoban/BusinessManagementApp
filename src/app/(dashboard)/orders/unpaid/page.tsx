@@ -68,7 +68,7 @@ async function markOrderAsPaid(orderId: string, paymentType: string) {
 export default function UnpaidOrdersPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [customerId, setCustomerId] = useState<string>("");
+  const [customerId, setCustomerId] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showMarkPaidDialog, setShowMarkPaidDialog] = useState(false);
   const [paymentType, setPaymentType] = useState<string>("CASH");
@@ -77,7 +77,7 @@ export default function UnpaidOrdersPage() {
   const queryParams: Record<string, string> = {};
   if (startDate) queryParams.startDate = startDate;
   if (endDate) queryParams.endDate = endDate;
-  if (customerId) queryParams.customerId = customerId;
+  if (customerId && customerId !== "all") queryParams.customerId = customerId;
 
   const { data: customersData } = useQuery({
     queryKey: ["customers-filter"],
@@ -200,7 +200,7 @@ export default function UnpaidOrdersPage() {
                   <SelectValue placeholder="Tüm müşteriler" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tüm müşteriler</SelectItem>
+                  <SelectItem value="all">Tüm müşteriler</SelectItem>
                   {customers.map((customer: any) => (
                     <SelectItem key={customer.id} value={customer.id}>
                       {customer.name}
@@ -225,7 +225,7 @@ export default function UnpaidOrdersPage() {
                 placeholder="Bitiş tarihi seçin"
               />
             </div>
-            {(startDate || endDate || customerId) && (
+            {(startDate || endDate || (customerId && customerId !== "all")) && (
               <div className="flex items-end w-full sm:w-auto">
                 <Button
                   variant="outline"
@@ -233,7 +233,7 @@ export default function UnpaidOrdersPage() {
                   onClick={() => {
                     setStartDate("");
                     setEndDate("");
-                    setCustomerId("");
+                    setCustomerId("all");
                   }}
                 >
                   Filtreleri Temizle

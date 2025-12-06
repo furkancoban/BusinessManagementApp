@@ -14,6 +14,8 @@ import {
   MapPin,
   FileText,
   ShoppingCart,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Loading } from "@/components/shared/loading";
@@ -27,7 +29,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, AlertTriangle } from "lucide-react";
 import {
   formatCurrency,
   formatDate,
