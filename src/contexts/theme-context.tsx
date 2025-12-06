@@ -5,13 +5,12 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 export type Theme = 
   | "light" 
   | "dark" 
-  | "slate" 
+  | "blue" 
+  | "green" 
+  | "purple" 
   | "rose" 
-  | "emerald" 
-  | "amber" 
-  | "indigo" 
-  | "cyan" 
-  | "violet";
+  | "orange" 
+  | "indigo";
 
 interface ThemeContextType {
   theme: Theme;
@@ -27,7 +26,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMounted(true);
     const savedTheme = localStorage.getItem("theme") as Theme;
-    const validThemes: Theme[] = ["light", "dark", "slate", "rose", "emerald", "amber", "indigo", "cyan", "violet"];
+    const validThemes: Theme[] = ["light", "dark", "blue", "green", "purple", "rose", "orange", "indigo"];
     if (savedTheme && validThemes.includes(savedTheme)) {
       setThemeState(savedTheme);
       applyTheme(savedTheme);
@@ -38,7 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
-    root.classList.remove("light", "dark", "slate", "rose", "emerald", "amber", "indigo", "cyan", "violet");
+    root.classList.remove("light", "dark", "blue", "green", "purple", "rose", "orange", "indigo");
     root.classList.add(newTheme);
     
     // Professional, modern theme color palettes
@@ -85,26 +84,68 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         "--input": "217.2 32.6% 17.5%",
         "--ring": "224.3 76.3% 48%",
       },
-      slate: {
-        "--background": "222.2 47.4% 98%",
-        "--foreground": "215 25.3% 16.9%",
+      blue: {
+        "--background": "0 0% 100%",
+        "--foreground": "222.2 84% 4.9%",
         "--card": "0 0% 100%",
-        "--card-foreground": "215 25.3% 16.9%",
+        "--card-foreground": "222.2 84% 4.9%",
         "--popover": "0 0% 100%",
-        "--popover-foreground": "215 25.3% 16.9%",
-        "--primary": "215 27.9% 16.9%",
+        "--popover-foreground": "222.2 84% 4.9%",
+        "--primary": "217.2 91.2% 59.8%",
         "--primary-foreground": "210 40% 98%",
         "--secondary": "210 40% 96.1%",
-        "--secondary-foreground": "215 25.3% 16.9%",
+        "--secondary-foreground": "222.2 47.4% 11.2%",
         "--muted": "210 40% 96.1%",
         "--muted-foreground": "215.4 16.3% 46.9%",
-        "--accent": "210 40% 94.1%",
-        "--accent-foreground": "215 25.3% 16.9%",
+        "--accent": "210 40% 96.1%",
+        "--accent-foreground": "222.2 47.4% 11.2%",
         "--destructive": "0 84.2% 60.2%",
         "--destructive-foreground": "210 40% 98%",
         "--border": "214.3 31.8% 91.4%",
         "--input": "214.3 31.8% 91.4%",
-        "--ring": "215 27.9% 16.9%",
+        "--ring": "217.2 91.2% 59.8%",
+      },
+      green: {
+        "--background": "0 0% 100%",
+        "--foreground": "240 10% 3.9%",
+        "--card": "0 0% 100%",
+        "--card-foreground": "240 10% 3.9%",
+        "--popover": "0 0% 100%",
+        "--popover-foreground": "240 10% 3.9%",
+        "--primary": "142.1 76.2% 36.3%",
+        "--primary-foreground": "355.7 100% 97.3%",
+        "--secondary": "240 4.8% 95.9%",
+        "--secondary-foreground": "240 5.9% 10%",
+        "--muted": "240 4.8% 95.9%",
+        "--muted-foreground": "240 3.8% 46.1%",
+        "--accent": "240 4.8% 95.9%",
+        "--accent-foreground": "240 5.9% 10%",
+        "--destructive": "0 84.2% 60.2%",
+        "--destructive-foreground": "210 40% 98%",
+        "--border": "240 5.9% 90%",
+        "--input": "240 5.9% 90%",
+        "--ring": "142.1 76.2% 36.3%",
+      },
+      purple: {
+        "--background": "0 0% 100%",
+        "--foreground": "224 71.4% 4.1%",
+        "--card": "0 0% 100%",
+        "--card-foreground": "224 71.4% 4.1%",
+        "--popover": "0 0% 100%",
+        "--popover-foreground": "224 71.4% 4.1%",
+        "--primary": "262.1 83.3% 57.8%",
+        "--primary-foreground": "210 40% 98%",
+        "--secondary": "220 14.3% 95.9%",
+        "--secondary-foreground": "220.9 39.3% 11%",
+        "--muted": "220 14.3% 95.9%",
+        "--muted-foreground": "215 16.3% 46.9%",
+        "--accent": "220 14.3% 95.9%",
+        "--accent-foreground": "220.9 39.3% 11%",
+        "--destructive": "0 84.2% 60.2%",
+        "--destructive-foreground": "210 40% 98%",
+        "--border": "220 13% 91%",
+        "--input": "220 13% 91%",
+        "--ring": "262.1 83.3% 57.8%",
       },
       rose: {
         "--background": "0 0% 100%",
@@ -127,28 +168,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         "--input": "240 5.9% 90%",
         "--ring": "346.8 77.2% 49.8%",
       },
-      emerald: {
-        "--background": "0 0% 100%",
-        "--foreground": "240 10% 3.9%",
-        "--card": "0 0% 100%",
-        "--card-foreground": "240 10% 3.9%",
-        "--popover": "0 0% 100%",
-        "--popover-foreground": "240 10% 3.9%",
-        "--primary": "142.1 76.2% 36.3%",
-        "--primary-foreground": "355.7 100% 97.3%",
-        "--secondary": "240 4.8% 95.9%",
-        "--secondary-foreground": "240 5.9% 10%",
-        "--muted": "240 4.8% 95.9%",
-        "--muted-foreground": "240 3.8% 46.1%",
-        "--accent": "240 4.8% 95.9%",
-        "--accent-foreground": "240 5.9% 10%",
-        "--destructive": "0 84.2% 60.2%",
-        "--destructive-foreground": "210 40% 98%",
-        "--border": "240 5.9% 90%",
-        "--input": "240 5.9% 90%",
-        "--ring": "142.1 76.2% 36.3%",
-      },
-      amber: {
+      orange: {
         "--background": "0 0% 100%",
         "--foreground": "20 14.3% 4.1%",
         "--card": "0 0% 100%",
@@ -189,48 +209,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         "--border": "214.3 31.8% 91.4%",
         "--input": "214.3 31.8% 91.4%",
         "--ring": "239.7 84.1% 67.1%",
-      },
-      cyan: {
-        "--background": "0 0% 100%",
-        "--foreground": "222.2 84% 4.9%",
-        "--card": "0 0% 100%",
-        "--card-foreground": "222.2 84% 4.9%",
-        "--popover": "0 0% 100%",
-        "--popover-foreground": "222.2 84% 4.9%",
-        "--primary": "188.7 85.7% 53.3%",
-        "--primary-foreground": "210 40% 98%",
-        "--secondary": "210 40% 96.1%",
-        "--secondary-foreground": "222.2 47.4% 11.2%",
-        "--muted": "210 40% 96.1%",
-        "--muted-foreground": "215.4 16.3% 46.9%",
-        "--accent": "210 40% 96.1%",
-        "--accent-foreground": "222.2 47.4% 11.2%",
-        "--destructive": "0 84.2% 60.2%",
-        "--destructive-foreground": "210 40% 98%",
-        "--border": "214.3 31.8% 91.4%",
-        "--input": "214.3 31.8% 91.4%",
-        "--ring": "188.7 85.7% 53.3%",
-      },
-      violet: {
-        "--background": "0 0% 100%",
-        "--foreground": "224 71.4% 4.1%",
-        "--card": "0 0% 100%",
-        "--card-foreground": "224 71.4% 4.1%",
-        "--popover": "0 0% 100%",
-        "--popover-foreground": "224 71.4% 4.1%",
-        "--primary": "262.1 83.3% 57.8%",
-        "--primary-foreground": "210 40% 98%",
-        "--secondary": "220 14.3% 95.9%",
-        "--secondary-foreground": "220.9 39.3% 11%",
-        "--muted": "220 14.3% 95.9%",
-        "--muted-foreground": "215 16.3% 46.9%",
-        "--accent": "220 14.3% 95.9%",
-        "--accent-foreground": "220.9 39.3% 11%",
-        "--destructive": "0 84.2% 60.2%",
-        "--destructive-foreground": "210 40% 98%",
-        "--border": "220 13% 91%",
-        "--input": "220 13% 91%",
-        "--ring": "262.1 83.3% 57.8%",
       },
     };
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Loader2, Building2, User, Lock, Users, Shield, ShieldCheck, Trash2, UserCog, Palette, Sun, Moon, Droplet, Sparkles, Circle, Heart, Leaf, Zap, Minus, Flame } from "lucide-react";
+import { Loader2, Building2, User, Lock, Users, Shield, ShieldCheck, Trash2, UserCog, Palette, Sun, Moon, Droplet, Sparkles, Circle, Heart, Leaf, Zap, Minus, Flame, Pencil, X, Check } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "@/contexts/theme-context";
 import { PageHeader } from "@/components/layout/page-header";
@@ -71,7 +71,7 @@ async function fetchUsers() {
   return res.json();
 }
 
-async function updateUser(id: string, data: { role?: string; isActive?: boolean }) {
+async function updateUser(id: string, data: { role?: string; name?: string; isActive?: boolean }) {
   const res = await fetch(`/api/users/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -124,6 +124,8 @@ export default function SettingsPage() {
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingUserName, setEditingUserName] = useState<string>("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showDeleteBusinessDialog, setShowDeleteBusinessDialog] = useState(false);
   const [deleteBusinessPassword, setDeleteBusinessPassword] = useState("");
@@ -204,10 +206,13 @@ export default function SettingsPage() {
   });
 
   const userUpdateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { role?: string; isActive?: boolean } }) =>
+    mutationFn: ({ id, data }: { id: string; data: { role?: string; name?: string; isActive?: boolean } }) =>
       updateUser(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      setEditingUserId(null);
+      setEditingUserName("");
       toast({
         title: "Başarılı",
         description: "Kullanıcı güncellendi.",
@@ -289,6 +294,28 @@ export default function SettingsPage() {
 
   const handleRoleChange = (userId: string, newRole: string) => {
     userUpdateMutation.mutate({ id: userId, data: { role: newRole } });
+  };
+
+  const handleStartEditName = (userId: string, currentName: string) => {
+    setEditingUserId(userId);
+    setEditingUserName(currentName);
+  };
+
+  const handleSaveName = (userId: string) => {
+    if (!editingUserName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Ad soyad boş olamaz.",
+      });
+      return;
+    }
+    userUpdateMutation.mutate({ id: userId, data: { name: editingUserName.trim() } });
+  };
+
+  const handleCancelEditName = () => {
+    setEditingUserId(null);
+    setEditingUserName("");
   };
 
   if (isLoading) {
@@ -544,43 +571,15 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <Label className="text-base font-semibold">Tema Seçin</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {/* Light Theme */}
-              <button
-                onClick={() => setTheme("light")}
-                className={`group relative p-5 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-                  theme === "light"
-                    ? "border-primary bg-gradient-to-br from-primary/20 to-primary/5 shadow-xl ring-2 ring-primary/30"
-                    : "border-border bg-card hover:border-primary/50 hover:shadow-lg"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-3">
-                  <div className="relative p-4 rounded-xl bg-gradient-to-br from-yellow-100 via-orange-100 to-amber-100 border-2 border-yellow-300 shadow-md transition-transform group-hover:scale-110">
-                    <Sun className="h-7 w-7 text-yellow-600" />
-                  </div>
-                  <span className="font-semibold text-sm">Açık</span>
-                  {theme === "light" && (
-                    <div className="absolute top-3 right-3 animate-scaleIn">
-                      <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-lg">
-                        <svg className="h-4 w-4 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Theme Buttons */}
               {[
                 { id: "light", name: "Açık", icon: Sun, gradient: "from-yellow-100 via-orange-100 to-amber-100", border: "border-yellow-300", iconColor: "text-yellow-600" },
                 { id: "dark", name: "Koyu", icon: Moon, gradient: "from-gray-800 via-gray-900 to-black", border: "border-gray-700", iconColor: "text-gray-300" },
-                { id: "slate", name: "Slate", icon: Circle, gradient: "from-slate-200 via-slate-300 to-slate-400", border: "border-slate-400", iconColor: "text-slate-700" },
-                { id: "rose", name: "Rose", icon: Heart, gradient: "from-rose-100 via-pink-100 to-rose-200", border: "border-rose-300", iconColor: "text-rose-600" },
-                { id: "emerald", name: "Emerald", icon: Leaf, gradient: "from-emerald-100 via-green-100 to-teal-100", border: "border-emerald-300", iconColor: "text-emerald-600" },
-                { id: "amber", name: "Amber", icon: Flame, gradient: "from-amber-100 via-orange-100 to-yellow-100", border: "border-amber-300", iconColor: "text-amber-700" },
-                { id: "indigo", name: "Indigo", icon: Droplet, gradient: "from-indigo-100 via-blue-100 to-purple-100", border: "border-indigo-300", iconColor: "text-indigo-600" },
-                { id: "cyan", name: "Cyan", icon: Sparkles, gradient: "from-cyan-100 via-blue-100 to-sky-100", border: "border-cyan-300", iconColor: "text-cyan-600" },
-                { id: "violet", name: "Violet", icon: Sparkles, gradient: "from-violet-100 via-purple-100 to-fuchsia-100", border: "border-violet-300", iconColor: "text-violet-600" },
+                { id: "blue", name: "Mavi", icon: Droplet, gradient: "from-blue-100 via-cyan-100 to-sky-100", border: "border-blue-400", iconColor: "text-blue-700" },
+                { id: "green", name: "Yeşil", icon: Leaf, gradient: "from-green-100 via-emerald-100 to-teal-100", border: "border-green-400", iconColor: "text-green-700" },
+                { id: "purple", name: "Mor", icon: Sparkles, gradient: "from-purple-100 via-violet-100 to-fuchsia-100", border: "border-purple-400", iconColor: "text-purple-700" },
+                { id: "rose", name: "Pembe", icon: Heart, gradient: "from-rose-100 via-pink-100 to-rose-200", border: "border-rose-300", iconColor: "text-rose-600" },
+                { id: "orange", name: "Turuncu", icon: Flame, gradient: "from-orange-100 via-amber-100 to-yellow-100", border: "border-orange-400", iconColor: "text-orange-700" },
+                { id: "indigo", name: "Çivit", icon: Droplet, gradient: "from-indigo-100 via-blue-100 to-purple-100", border: "border-indigo-400", iconColor: "text-indigo-700" },
               ].map((themeOption) => {
                 const Icon = themeOption.icon;
                 const isSelected = theme === themeOption.id;
@@ -654,12 +653,49 @@ export default function SettingsPage() {
                           <User className="h-5 w-5 text-muted-foreground" />
                         )}
                       </div>
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Kayıt: {formatDate(user.createdAt)}
-                        </p>
+                      <div className="flex-1 min-w-0">
+                        {editingUserId === user.id ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={editingUserName}
+                              onChange={(e) => setEditingUserName(e.target.value)}
+                              className="max-w-xs"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  handleSaveName(user.id);
+                                } else if (e.key === "Escape") {
+                                  handleCancelEditName();
+                                }
+                              }}
+                              autoFocus
+                              disabled={userUpdateMutation.isPending}
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleSaveName(user.id)}
+                              disabled={userUpdateMutation.isPending}
+                            >
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleCancelEditName}
+                              disabled={userUpdateMutation.isPending}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="font-medium">{user.name}</p>
+                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Kayıt: {formatDate(user.createdAt)}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -668,38 +704,49 @@ export default function SettingsPage() {
                         <Badge variant="secondary">Siz</Badge>
                       ) : (
                         <>
-                          <Select
-                            value={user.role}
-                            onValueChange={(value) => handleRoleChange(user.id, value)}
-                            disabled={userUpdateMutation.isPending}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="ADMIN">
-                                <div className="flex items-center gap-2">
-                                  <ShieldCheck className="h-4 w-4" />
-                                  Yönetici
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="STAFF">
-                                <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4" />
-                                  Personel
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteUserId(user.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {editingUserId !== user.id && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleStartEditName(user.id, user.name)}
+                                title="Ad Soyad Düzenle"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Select
+                                value={user.role}
+                                onValueChange={(value) => handleRoleChange(user.id, value)}
+                                disabled={userUpdateMutation.isPending}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="ADMIN">
+                                    <div className="flex items-center gap-2">
+                                      <ShieldCheck className="h-4 w-4" />
+                                      Yönetici
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="STAFF">
+                                    <div className="flex items-center gap-2">
+                                      <User className="h-4 w-4" />
+                                      Personel
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => setDeleteUserId(user.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                         </>
                       )}
                     </div>

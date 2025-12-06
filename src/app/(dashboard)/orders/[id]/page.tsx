@@ -170,6 +170,12 @@ export default function OrderDetailPage({
                   {formatCurrency(order.totalAmount)}
                 </p>
               </div>
+              {order.paidAt && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Ödeme Tarihi</p>
+                  <p className="font-semibold">{formatDateTime(order.paidAt)}</p>
+                </div>
+              )}
             </div>
 
             {order.notes && (

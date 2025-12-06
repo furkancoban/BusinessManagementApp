@@ -19,17 +19,30 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { role } = body;
+    const { role, name } = body;
 
     // Prevent admin from demoting themselves
-    if (params.id === session.user.id && role !== "ADMIN") {
+    if (params.id === session.user.id && role && role !== "ADMIN") {
       return NextResponse.json(
         { error: "Kendi admin yetkinizi kaldıramazsınız" },
         { status: 400 }
       );
     }
 
-    // Update role in UserBusiness junction table
+    // Update user name if provided
+    if (name !== undefined) {
+      await prisma.user.update({
+        where: { id: params.id },
+        data: { name: name.trim() },
+      });
+    }
+
+    // Update role in UserBusiness junction table if provided
+    const updateData: any = {};
+    if (role !== undefined) {
+      updateData.role = role;
+    }
+
     const userBusiness = await prisma.userBusiness.update({
       where: {
         userId_businessId: {
@@ -37,7 +50,7 @@ export async function PUT(
           businessId: session.user.businessId,
         },
       },
-      data: { role },
+      data: updateData,
       include: {
         user: {
           select: {
@@ -49,11 +62,21 @@ export async function PUT(
       },
     });
 
+    // Get updated user data
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: params.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+
     return NextResponse.json({
       user: {
-        id: userBusiness.user.id,
-        name: userBusiness.user.name,
-        email: userBusiness.user.email,
+        id: updatedUser?.id || userBusiness.user.id,
+        name: updatedUser?.name || userBusiness.user.name,
+        email: updatedUser?.email || userBusiness.user.email,
         role: userBusiness.role,
       },
     });

@@ -123,13 +123,28 @@ export async function PUT(
     const body = await request.json();
     const { status, notes, paymentType } = body;
 
+    // Prepare update data
+    const updateData: any = {};
+    if (status !== undefined) updateData.status = status;
+    if (notes !== undefined) updateData.notes = notes;
+    
+    // If paymentType is being changed from VERESIYE to something else, set paidAt
+    if (paymentType !== undefined) {
+      updateData.paymentType = paymentType;
+      
+      // If changing from VERESIYE to a paid method, record the payment date
+      if (existing.paymentType === "VERESIYE" && paymentType !== "VERESIYE") {
+        updateData.paidAt = new Date();
+      }
+      // If changing back to VERESIYE, clear the paidAt date
+      else if (paymentType === "VERESIYE" && existing.paymentType !== "VERESIYE") {
+        updateData.paidAt = null;
+      }
+    }
+
     const order = await prisma.order.update({
       where: { id: orderId },
-      data: {
-        ...(status !== undefined && { status }),
-        ...(notes !== undefined && { notes }),
-        ...(paymentType !== undefined && { paymentType }),
-      },
+      data: updateData,
       include: {
         customer: true,
         items: {

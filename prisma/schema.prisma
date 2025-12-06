@@ -22,25 +22,25 @@ model Business {
   updatedAt DateTime @updatedAt
 
   // Relations
-  users      UserBusiness[]
-  customers  Customer[]
-  products   Product[]
-  orders     Order[]
+  users     UserBusiness[]
+  customers Customer[]
+  products  Product[]
+  orders    Order[]
 }
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  password        String
-  name            String
-  isActive        Boolean   @default(true)
-  emailVerified   Boolean   @default(false)
-  verifyToken     String?   @unique
-  verifyTokenExp  DateTime?
-  resetToken      String?   @unique
-  resetTokenExp   DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  email          String    @unique
+  password       String
+  name           String
+  isActive       Boolean   @default(true)
+  emailVerified  Boolean   @default(false)
+  verifyToken    String?   @unique
+  verifyTokenExp DateTime?
+  resetToken     String?   @unique
+  resetTokenExp  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Relations - user can belong to multiple businesses
   businesses       UserBusiness[]
@@ -112,15 +112,16 @@ model Product {
 }
 
 model Order {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   orderNumber String
-  orderDate   DateTime @default(now())
+  orderDate   DateTime  @default(now())
   totalAmount Float
-  paymentType String   @default("CASH")
-  status      String   @default("COMPLETED")
+  paymentType String    @default("CASH")
+  status      String    @default("COMPLETED")
   notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  paidAt      DateTime? // Date when veresiye order was paid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
   business    Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
@@ -136,6 +137,7 @@ model Order {
   @@index([orderNumber])
   @@index([orderDate])
   @@index([customerId])
+  @@index([paidAt])
 }
 
 model OrderItem {
