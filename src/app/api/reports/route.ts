@@ -84,14 +84,14 @@ export async function GET(request: NextRequest) {
       order.items.forEach((item) => {
         const existing = productStats.get(item.productId);
         if (existing) {
-          existing.totalQuantity += item.quantity;
-          existing.totalRevenue += item.subtotal;
+          existing.totalQuantity += Number(item.quantity) || 0;
+          existing.totalRevenue += Number(item.subtotal) || 0;
         } else {
           productStats.set(item.productId, {
             productId: item.productId,
             productName: item.product.name,
-            totalQuantity: item.quantity,
-            totalRevenue: item.subtotal,
+            totalQuantity: Number(item.quantity) || 0,
+            totalRevenue: Number(item.subtotal) || 0,
           });
         }
       });
@@ -114,8 +114,18 @@ export async function GET(request: NextRequest) {
       topProductDetails.map((p) => [p.id, p.stockQuantity])
     );
 
-    const topProducts = Array.from(productStats.values())
-      .sort((a, b) => b.totalQuantity - a.totalQuantity)
+    // Convert Map to array and sort by totalQuantity (descending - highest first)
+    const topProductsArray = Array.from(productStats.values());
+    topProductsArray.sort((a, b) => {
+      // Sort by totalQuantity descending (highest quantity first)
+      if (b.totalQuantity !== a.totalQuantity) {
+        return b.totalQuantity - a.totalQuantity;
+      }
+      // If quantities are equal, sort by totalRevenue descending
+      return b.totalRevenue - a.totalRevenue;
+    });
+
+    const topProducts = topProductsArray
       .slice(0, 5)
       .map((product) => ({
         ...product,
