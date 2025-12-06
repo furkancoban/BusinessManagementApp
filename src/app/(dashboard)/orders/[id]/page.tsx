@@ -344,6 +344,7 @@ export default function OrderDetailPage({
             )}
 
             <div className="text-center mt-4 pt-2 border-t border-gray-400">
+              <p className="font-bold mb-2">Bilgi Fişidir</p>
               <p className="font-bold">Teşekkür ederiz!</p>
               <p className="text-xs">Yine bekleriz...</p>
             </div>
