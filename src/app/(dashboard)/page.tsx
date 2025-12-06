@@ -276,6 +276,124 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* Quick Actions - Repositioned to top */}
+      <Card className="border-2 border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md">
+              <Activity className="h-5 w-5" />
+            </div>
+            Hızlı İşlemler
+          </CardTitle>
+          <CardDescription>En sık kullanılan işlemlere hızlı erişim</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-3">
+            {/* Create Actions */}
+            <Link
+              href="/orders/new"
+              className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/50 hover:border-blue-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <ShoppingCart className="h-6 w-6" />
+              </div>
+              <span className="font-semibold text-sm text-center text-blue-900">Yeni Sipariş</span>
+              <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+
+            <Link
+              href="/customers/new"
+              className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100/50 hover:border-purple-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <Users className="h-6 w-6" />
+              </div>
+              <span className="font-semibold text-sm text-center text-purple-900">Yeni Müşteri</span>
+              <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+
+            <Link
+              href="/products/new"
+              className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100/50 hover:border-orange-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <Package className="h-6 w-6" />
+              </div>
+              <span className="font-semibold text-sm text-center text-orange-900">Yeni Ürün</span>
+              <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+
+            {/* View Actions */}
+            <Link
+              href="/orders"
+              className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-indigo-100/50 hover:border-indigo-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <List className="h-6 w-6" />
+              </div>
+              <span className="font-semibold text-sm text-center text-indigo-900">Tüm Siparişler</span>
+              <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+
+            <Link
+              href="/orders/unpaid"
+              className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50 hover:border-amber-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <CreditCard className="h-6 w-6" />
+              </div>
+              <span className="font-semibold text-sm text-center text-amber-900">Veresiye Siparişler</span>
+              <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+
+            <Link
+              href="/customers"
+              className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 to-cyan-100/50 hover:border-cyan-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <Users className="h-6 w-6" />
+              </div>
+              <span className="font-semibold text-sm text-center text-cyan-900">Müşteriler</span>
+              <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+
+            <Link
+              href="/products"
+              className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50 hover:border-emerald-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <Package className="h-6 w-6" />
+              </div>
+              <span className="font-semibold text-sm text-center text-emerald-900">Ürünler</span>
+              <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+
+            {/* Reports & Settings */}
+            <Link
+              href="/reports"
+              className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-green-100/50 hover:border-green-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <BarChart3 className="h-6 w-6" />
+              </div>
+              <span className="font-semibold text-sm text-center text-green-900">Raporlar</span>
+              <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-green-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+
+            <Link
+              href="/settings"
+              className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100/50 hover:border-slate-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            >
+              <div className="p-3 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <Settings className="h-6 w-6" />
+              </div>
+              <span className="font-semibold text-sm text-center text-slate-900">Ayarlar</span>
+              <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Charts and Detailed Info */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Sales Chart - Enhanced Bar Chart */}
@@ -484,124 +602,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         )}
-
-        {/* Quick Actions */}
-        <Card className="border-2 border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md">
-                <Activity className="h-5 w-5" />
-              </div>
-              Hızlı İşlemler
-            </CardTitle>
-            <CardDescription>En sık kullanılan işlemlere hızlı erişim</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {/* Create Actions */}
-              <Link
-                href="/orders/new"
-                className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/50 hover:border-blue-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
-                  <ShoppingCart className="h-6 w-6" />
-                </div>
-                <span className="font-semibold text-sm text-center text-blue-900">Yeni Sipariş</span>
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-
-              <Link
-                href="/customers/new"
-                className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100/50 hover:border-purple-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
-                  <Users className="h-6 w-6" />
-                </div>
-                <span className="font-semibold text-sm text-center text-purple-900">Yeni Müşteri</span>
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-
-              <Link
-                href="/products/new"
-                className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100/50 hover:border-orange-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
-                  <Package className="h-6 w-6" />
-                </div>
-                <span className="font-semibold text-sm text-center text-orange-900">Yeni Ürün</span>
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-
-              {/* View Actions */}
-              <Link
-                href="/orders"
-                className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-indigo-100/50 hover:border-indigo-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
-                  <List className="h-6 w-6" />
-                </div>
-                <span className="font-semibold text-sm text-center text-indigo-900">Tüm Siparişler</span>
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-
-              <Link
-                href="/orders/unpaid"
-                className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50 hover:border-amber-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
-                  <CreditCard className="h-6 w-6" />
-                </div>
-                <span className="font-semibold text-sm text-center text-amber-900">Veresiye Siparişler</span>
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-
-              <Link
-                href="/customers"
-                className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 to-cyan-100/50 hover:border-cyan-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
-                  <Users className="h-6 w-6" />
-                </div>
-                <span className="font-semibold text-sm text-center text-cyan-900">Müşteriler</span>
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-
-              <Link
-                href="/products"
-                className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50 hover:border-emerald-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
-                  <Package className="h-6 w-6" />
-                </div>
-                <span className="font-semibold text-sm text-center text-emerald-900">Ürünler</span>
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-
-              {/* Reports & Settings */}
-              <Link
-                href="/reports"
-                className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-green-100/50 hover:border-green-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
-                  <BarChart3 className="h-6 w-6" />
-                </div>
-                <span className="font-semibold text-sm text-center text-green-900">Raporlar</span>
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-green-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-
-              <Link
-                href="/settings"
-                className="group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100/50 hover:border-slate-400 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 text-white mb-3 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all">
-                  <Settings className="h-6 w-6" />
-                </div>
-                <span className="font-semibold text-sm text-center text-slate-900">Ayarlar</span>
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* New Feature Cards: Today's Summary, Weekly Performance, Business Health */}
