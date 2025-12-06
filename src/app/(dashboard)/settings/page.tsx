@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Loader2, Building2, User, Lock, Users, Shield, ShieldCheck, Trash2, UserCog, Palette, Sun, Moon, Droplet, Sparkles } from "lucide-react";
+import { Loader2, Building2, User, Lock, Users, Shield, ShieldCheck, Trash2, UserCog, Palette, Sun, Moon, Droplet, Sparkles, Circle, Heart, Leaf, Zap, Minus, Flame } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "@/contexts/theme-context";
 import { PageHeader } from "@/components/layout/page-header";
@@ -530,7 +530,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Theme Settings */}
-      <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+      <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5 text-primary" />
@@ -541,27 +541,27 @@ export default function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-6">
             <Label className="text-base font-semibold">Tema Seçin</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {/* Light Theme */}
               <button
                 onClick={() => setTheme("light")}
-                className={`relative p-4 rounded-xl border-2 transition-all hover:scale-105 ${
+                className={`group relative p-5 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl ${
                   theme === "light"
-                    ? "border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/50"
+                    ? "border-primary bg-gradient-to-br from-primary/20 to-primary/5 shadow-xl ring-2 ring-primary/30"
+                    : "border-border bg-card hover:border-primary/50 hover:shadow-lg"
                 }`}
               >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-300">
-                    <Sun className="h-6 w-6 text-yellow-600" />
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative p-4 rounded-xl bg-gradient-to-br from-yellow-100 via-orange-100 to-amber-100 border-2 border-yellow-300 shadow-md transition-transform group-hover:scale-110">
+                    <Sun className="h-7 w-7 text-yellow-600" />
                   </div>
-                  <span className="font-medium text-sm">Açık</span>
+                  <span className="font-semibold text-sm">Açık</span>
                   {theme === "light" && (
-                    <div className="absolute top-2 right-2">
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                        <svg className="h-3 w-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="absolute top-3 right-3 animate-scaleIn">
+                      <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                        <svg className="h-4 w-4 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
@@ -570,135 +570,48 @@ export default function SettingsPage() {
                 </div>
               </button>
 
-              {/* Dark Theme */}
-              <button
-                onClick={() => setTheme("dark")}
-                className={`relative p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                  theme === "dark"
-                    ? "border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/50"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700">
-                    <Moon className="h-6 w-6 text-gray-300" />
-                  </div>
-                  <span className="font-medium text-sm">Koyu</span>
-                  {theme === "dark" && (
-                    <div className="absolute top-2 right-2">
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                        <svg className="h-3 w-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
+              {/* Theme Buttons */}
+              {[
+                { id: "light", name: "Açık", icon: Sun, gradient: "from-yellow-100 via-orange-100 to-amber-100", border: "border-yellow-300", iconColor: "text-yellow-600" },
+                { id: "dark", name: "Koyu", icon: Moon, gradient: "from-gray-800 via-gray-900 to-black", border: "border-gray-700", iconColor: "text-gray-300" },
+                { id: "slate", name: "Slate", icon: Circle, gradient: "from-slate-200 via-slate-300 to-slate-400", border: "border-slate-400", iconColor: "text-slate-700" },
+                { id: "rose", name: "Rose", icon: Heart, gradient: "from-rose-100 via-pink-100 to-rose-200", border: "border-rose-300", iconColor: "text-rose-600" },
+                { id: "emerald", name: "Emerald", icon: Leaf, gradient: "from-emerald-100 via-green-100 to-teal-100", border: "border-emerald-300", iconColor: "text-emerald-600" },
+                { id: "amber", name: "Amber", icon: Flame, gradient: "from-amber-100 via-orange-100 to-yellow-100", border: "border-amber-300", iconColor: "text-amber-700" },
+                { id: "indigo", name: "Indigo", icon: Droplet, gradient: "from-indigo-100 via-blue-100 to-purple-100", border: "border-indigo-300", iconColor: "text-indigo-600" },
+                { id: "cyan", name: "Cyan", icon: Sparkles, gradient: "from-cyan-100 via-blue-100 to-sky-100", border: "border-cyan-300", iconColor: "text-cyan-600" },
+                { id: "violet", name: "Violet", icon: Sparkles, gradient: "from-violet-100 via-purple-100 to-fuchsia-100", border: "border-violet-300", iconColor: "text-violet-600" },
+              ].map((themeOption) => {
+                const Icon = themeOption.icon;
+                const isSelected = theme === themeOption.id;
+                return (
+                  <button
+                    key={themeOption.id}
+                    onClick={() => setTheme(themeOption.id as any)}
+                    className={`group relative p-5 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+                      isSelected
+                        ? "border-primary bg-gradient-to-br from-primary/20 to-primary/5 shadow-xl ring-2 ring-primary/30"
+                        : "border-border bg-card hover:border-primary/50 hover:shadow-lg"
+                    }`}
+                  >
+                    <div className="flex flex-col items-center gap-3">
+                      <div className={`relative p-4 rounded-xl bg-gradient-to-br ${themeOption.gradient} border-2 ${themeOption.border} shadow-md transition-transform group-hover:scale-110`}>
+                        <Icon className={`h-7 w-7 ${themeOption.iconColor}`} />
                       </div>
+                      <span className="font-semibold text-sm">{themeOption.name}</span>
+                      {isSelected && (
+                        <div className="absolute top-3 right-3 animate-scaleIn">
+                          <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                            <svg className="h-4 w-4 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Blue Theme */}
-              <button
-                onClick={() => setTheme("blue")}
-                className={`relative p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                  theme === "blue"
-                    ? "border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/50"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 border-2 border-blue-300">
-                    <Droplet className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <span className="font-medium text-sm">Mavi</span>
-                  {theme === "blue" && (
-                    <div className="absolute top-2 right-2">
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                        <svg className="h-3 w-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Green Theme */}
-              <button
-                onClick={() => setTheme("green")}
-                className={`relative p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                  theme === "green"
-                    ? "border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/50"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-300">
-                    <Sparkles className="h-6 w-6 text-green-600" />
-                  </div>
-                  <span className="font-medium text-sm">Yeşil</span>
-                  {theme === "green" && (
-                    <div className="absolute top-2 right-2">
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                        <svg className="h-3 w-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Purple Theme */}
-              <button
-                onClick={() => setTheme("purple")}
-                className={`relative p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                  theme === "purple"
-                    ? "border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/50"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300">
-                    <Sparkles className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <span className="font-medium text-sm">Mor</span>
-                  {theme === "purple" && (
-                    <div className="absolute top-2 right-2">
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                        <svg className="h-3 w-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Orange Theme */}
-              <button
-                onClick={() => setTheme("orange")}
-                className={`relative p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                  theme === "orange"
-                    ? "border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/50"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-orange-100 to-amber-100 border-2 border-orange-300">
-                    <Sun className="h-6 w-6 text-orange-600" />
-                  </div>
-                  <span className="font-medium text-sm">Turuncu</span>
-                  {theme === "orange" && (
-                    <div className="absolute top-2 right-2">
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                        <svg className="h-3 w-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </button>
+                  </button>
+                );
+              })}
             </div>
             <p className="text-sm text-muted-foreground mt-4">
               Seçtiğiniz tema anında uygulanır ve tarayıcınızda kaydedilir.
