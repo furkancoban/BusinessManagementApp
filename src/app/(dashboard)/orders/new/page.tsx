@@ -204,6 +204,80 @@ export default function NewOrderPage() {
     );
   };
 
+  const setQuantity = (productId: string, quantity: string) => {
+    const item = items.find((i) => i.productId === productId);
+    if (!item) return;
+
+    // Allow empty string for clearing the field
+    if (quantity === "" || quantity === "-") {
+      // Don't update state, but allow user to type
+      return;
+    }
+
+    const numQuantity = parseInt(quantity, 10);
+    
+    // If not a valid number, don't update
+    if (isNaN(numQuantity)) {
+      return;
+    }
+
+    // Allow typing any number, but clamp to valid range
+    // We'll validate properly on blur
+    const clampedQuantity = Math.max(1, Math.min(numQuantity, item.stockQuantity));
+
+    setItems(
+      items.map((i) =>
+        i.productId === productId
+          ? { ...i, quantity: clampedQuantity }
+          : i
+      )
+    );
+  };
+
+  const handleQuantityBlur = (productId: string, quantity: string) => {
+    const item = items.find((i) => i.productId === productId);
+    if (!item) return;
+
+    // If field is empty or invalid, restore to current quantity
+    if (quantity === "" || isNaN(parseInt(quantity, 10))) {
+      // Force re-render with current quantity
+      setItems([...items]);
+      return;
+    }
+
+    const numQuantity = parseInt(quantity, 10);
+    
+    // Ensure minimum of 1
+    if (numQuantity < 1) {
+      setItems(
+        items.map((i) =>
+          i.productId === productId
+            ? { ...i, quantity: 1 }
+            : i
+        )
+      );
+      return;
+    }
+
+    // Clamp to stock quantity
+    const finalQuantity = Math.min(numQuantity, item.stockQuantity);
+    if (finalQuantity !== numQuantity) {
+      toast({
+        variant: "destructive",
+        title: "Yetersiz Stok",
+        description: `${item.productName} ürününden stokta sadece ${item.stockQuantity} adet bulunmaktadır.`,
+      });
+    }
+
+    setItems(
+      items.map((i) =>
+        i.productId === productId
+          ? { ...i, quantity: finalQuantity }
+          : i
+      )
+    );
+  };
+
   const updatePrice = (productId: string, price: number) => {
     setItems(
       items.map((item) =>
@@ -447,10 +521,22 @@ export default function NewOrderPage() {
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <div className="flex flex-col items-center">
-                          <span className="w-10 text-center font-semibold">
-                            {item.quantity}
-                          </span>
+                        <div className="flex flex-col items-center gap-1">
+                          <Input
+                            type="number"
+                            min="1"
+                            max={item.stockQuantity}
+                            value={item.quantity}
+                            onChange={(e) => setQuantity(item.productId, e.target.value)}
+                            onBlur={(e) => handleQuantityBlur(item.productId, e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.currentTarget.blur();
+                              }
+                            }}
+                            className="w-16 text-center font-semibold h-10 p-2"
+                          />
                           <span className="text-xs text-muted-foreground">
                             / {item.stockQuantity}
                           </span>
