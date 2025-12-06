@@ -13,8 +13,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
-import { formatCurrency, formatDateTime, paymentTypeColors } from "@/lib/utils";
+import { formatCurrency, formatDateTime, paymentTypeColors, paymentTypeLabels } from "@/lib/utils";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { exportToCSV, formatDateTimeForExport } from "@/lib/export";
@@ -26,10 +41,30 @@ async function fetchUnpaidOrders(params: Record<string, string>) {
   return res.json();
 }
 
+async function markOrderAsPaid(orderId: string, paymentType: string) {
+  const res = await fetch(`/api/orders/${orderId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      paymentType,
+    }),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to mark order as paid");
+  }
+  return res.json();
+}
+
 
 export default function UnpaidOrdersPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [showMarkPaidDialog, setShowMarkPaidDialog] = useState(false);
+  const [paymentType, setPaymentType] = useState<string>("CASH");
   const queryClient = useQueryClient();
 
   const queryParams: Record<string, string> = {};
@@ -41,6 +76,43 @@ export default function UnpaidOrdersPage() {
     queryFn: () => fetchUnpaidOrders(queryParams),
   });
 
+  const markPaidMutation = useMutation({
+    mutationFn: ({ orderId, paymentType }: { orderId: string; paymentType: string }) =>
+      markOrderAsPaid(orderId, paymentType),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["unpaid-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["reports"] });
+      setShowMarkPaidDialog(false);
+      setSelectedOrder(null);
+      setPaymentType("CASH");
+      toast({
+        title: "Başarılı",
+        description: "Sipariş ödendi olarak işaretlendi.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error.message || "Sipariş ödendi olarak işaretlenirken bir hata oluştu.",
+      });
+    },
+  });
+
+  const handleMarkAsPaid = (order: any) => {
+    setSelectedOrder(order);
+    setShowMarkPaidDialog(true);
+  };
+
+  const handleConfirmMarkAsPaid = () => {
+    if (!selectedOrder) return;
+    markPaidMutation.mutate({
+      orderId: selectedOrder.id,
+      paymentType,
+    });
+  };
 
   const orders = data?.orders || [];
   const totalUnpaid = orders.reduce((sum: number, order: any) => sum + order.totalAmount, 0);
@@ -241,17 +313,29 @@ export default function UnpaidOrdersPage() {
                       </p>
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      asChild
-                      className="flex-shrink-0"
-                    >
-                      <Link href={`/orders/${order.id}`}>
-                        <Eye className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Detay</span>
-                      </Link>
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleMarkAsPaid(order)}
+                        className="bg-green-600 hover:bg-green-700 text-white flex-shrink-0"
+                      >
+                        <CheckCircle2 className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Ödendi</span>
+                        <span className="sm:hidden">Öde</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                        className="flex-shrink-0"
+                      >
+                        <Link href={`/orders/${order.id}`}>
+                          <Eye className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Detay</span>
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -259,6 +343,65 @@ export default function UnpaidOrdersPage() {
           ))}
         </div>
       )}
+
+      {/* Mark as Paid Dialog */}
+      <Dialog open={showMarkPaidDialog} onOpenChange={setShowMarkPaidDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ödeme Olarak İşaretle</DialogTitle>
+            <DialogDescription>
+              {selectedOrder && (
+                <>
+                  <span className="font-semibold">{selectedOrder.orderNumber}</span> siparişini ödendi olarak işaretlemek için ödeme tipini seçin.
+                  <br />
+                  <span className="text-sm text-muted-foreground">
+                    Tutar: {formatCurrency(selectedOrder.totalAmount)}
+                  </span>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Ödeme Tipi</Label>
+              <Select value={paymentType} onValueChange={setPaymentType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Ödeme tipi seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CASH">Nakit</SelectItem>
+                  <SelectItem value="CREDIT_CARD">Kredi Kartı</SelectItem>
+                  <SelectItem value="BANK_TRANSFER">Havale/EFT</SelectItem>
+                  <SelectItem value="OTHER">Diğer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Bu işlem siparişi veresiye listesinden çıkaracak ve müşteri bakiyesini güncelleyecektir.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowMarkPaidDialog(false);
+                setSelectedOrder(null);
+                setPaymentType("CASH");
+              }}
+              disabled={markPaidMutation.isPending}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={handleConfirmMarkAsPaid}
+              disabled={markPaidMutation.isPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {markPaidMutation.isPending ? "İşleniyor..." : "Ödendi Olarak İşaretle"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

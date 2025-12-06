@@ -95,7 +95,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -108,9 +108,12 @@ export async function PUT(
       return NextResponse.json({ error: "No business selected" }, { status: 400 });
     }
 
+    const resolvedParams = await Promise.resolve(params);
+    const orderId = resolvedParams.id;
+
     // Verify order belongs to business
     const existing = await prisma.order.findFirst({
-      where: { id: params.id, businessId: session.user.businessId },
+      where: { id: orderId, businessId: session.user.businessId },
     });
 
     if (!existing) {
@@ -121,11 +124,11 @@ export async function PUT(
     const { status, notes, paymentType } = body;
 
     const order = await prisma.order.update({
-      where: { id: params.id },
+      where: { id: orderId },
       data: {
-        status,
-        notes,
-        paymentType,
+        ...(status !== undefined && { status }),
+        ...(notes !== undefined && { notes }),
+        ...(paymentType !== undefined && { paymentType }),
       },
       include: {
         customer: true,
