@@ -92,6 +92,7 @@ export default function OrderDetailPage({
 
   const order = data?.order;
   const businessInfo = data?.businessInfo;
+  const debtInfo = data?.debtInfo;
 
   if (!order) {
     return (
@@ -277,12 +278,16 @@ export default function OrderDetailPage({
             <div className="border-t border-b border-dashed border-gray-400 py-2 my-2">
               <p>Sipariş No: {order.orderNumber}</p>
               <p>Tarih: {formatDateTime(order.orderDate)}</p>
+              {order.createdBy?.name && (
+                <p>Personel: {order.createdBy.name}</p>
+              )}
             </div>
 
             {/* Customer */}
             <div className="border-b border-dashed border-gray-400 py-2 mb-2">
               <p>Müşteri: {order.customer.name}</p>
               {order.customer.phone && <p>Tel: {order.customer.phone}</p>}
+              {order.customer.email && <p>E-posta: {order.customer.email}</p>}
             </div>
 
             {/* Items */}
@@ -312,6 +317,9 @@ export default function OrderDetailPage({
             </table>
 
             <div className="border-t border-dashed border-gray-400 pt-2">
+              <div className="mb-2">
+                <p>Toplam Ürün Adedi: {order.items.reduce((sum: number, item: any) => sum + item.quantity, 0)} adet</p>
+              </div>
               <div className="flex justify-between font-bold text-lg">
                 <span>TOPLAM:</span>
                 <span>{formatCurrency(order.totalAmount)}</span>
@@ -321,6 +329,12 @@ export default function OrderDetailPage({
             <div className="border-t border-dashed border-gray-400 py-2 mt-2">
               <p>Ödeme: {paymentTypeLabels[order.paymentType]}</p>
               <p>Durum: {orderStatusLabels[order.status]}</p>
+              {debtInfo && (
+                <>
+                  <p className="mt-2 font-semibold">Önceki Borç: {formatCurrency(debtInfo.previousDebt)}</p>
+                  <p className="font-semibold">Toplam Borç: {formatCurrency(debtInfo.totalDebtAfter)}</p>
+                </>
+              )}
             </div>
 
             {order.notes && (

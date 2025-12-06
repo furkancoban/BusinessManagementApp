@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,9 +18,12 @@ export async function GET(
       return NextResponse.json({ error: "No business selected" }, { status: 400 });
     }
 
+    const resolvedParams = await Promise.resolve(params);
+    const orderId = resolvedParams.id;
+
     const order = await prisma.order.findFirst({
       where: { 
-        id: params.id,
+        id: orderId,
         businessId: session.user.businessId,
       },
       include: {
@@ -47,7 +50,40 @@ export async function GET(
       where: { id: session.user.businessId },
     });
 
-    return NextResponse.json({ order, businessInfo: business });
+    // Calculate previous debt: All veresiye orders before this order (excluding this order)
+    // Veresiye = paymentType: "VERESIYE" and status: "COMPLETED"
+    const previousDebt = await prisma.order.aggregate({
+      where: {
+        businessId: session.user.businessId,
+        customerId: order.customerId,
+        paymentType: "VERESIYE",
+        status: "COMPLETED",
+        id: {
+          not: orderId, // Exclude this order
+        },
+        orderDate: {
+          lt: order.orderDate,
+        },
+      },
+      _sum: {
+        totalAmount: true,
+      },
+    });
+
+    // Calculate total debt after this order
+    // If this order is VERESIYE and COMPLETED, include it in the total
+    const previousDebtAmount = previousDebt._sum.totalAmount || 0;
+    const isThisOrderVeresiye = order.paymentType === "VERESIYE" && order.status === "COMPLETED";
+    const totalDebtAfter = previousDebtAmount + (isThisOrderVeresiye ? order.totalAmount : 0);
+
+    return NextResponse.json({ 
+      order, 
+      businessInfo: business,
+      debtInfo: {
+        previousDebt: previousDebtAmount,
+        totalDebtAfter: totalDebtAfter,
+      },
+    });
   } catch (error) {
     console.error("Get order error:", error);
     return NextResponse.json(
