@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     // Test database connection
@@ -17,8 +19,12 @@ export async function GET() {
   } catch (error: any) {
     return NextResponse.json({
       success: false,
-      error: error.message,
-      databaseUrl: process.env.DATABASE_URL ? "Set" : "Not set",
+      error: error.message || String(error),
+      errorCode: error.code,
+      errorName: error.name,
+      databaseUrl: process.env.DATABASE_URL ? "Set (hidden)" : "Not set",
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      ...(process.env.NODE_ENV === "development" && { stack: error.stack })
     }, { status: 500 });
   }
 }
