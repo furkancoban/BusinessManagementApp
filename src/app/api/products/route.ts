@@ -67,10 +67,14 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Get products error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        message: error?.message || String(error),
+        ...(process.env.NODE_ENV === "development" && { stack: error?.stack })
+      },
       { status: 500 }
     );
   }

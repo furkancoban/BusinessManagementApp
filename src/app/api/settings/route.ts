@@ -22,10 +22,14 @@ export async function GET() {
     });
 
     return NextResponse.json({ businessInfo: business });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Get settings error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        message: error?.message || String(error),
+        ...(process.env.NODE_ENV === "development" && { stack: error?.stack })
+      },
       { status: 500 }
     );
   }
