@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { seedBusinessData } from "../../../../prisma/seed";
 
+export const dynamic = 'force-dynamic';
+
 // Generate URL-friendly slug
 function generateSlug(name: string): string {
   return name
